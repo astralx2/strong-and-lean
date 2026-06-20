@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="40" fill="#0b0e14"/>
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c5cff"/>
+      <stop offset="100%" stop-color="#23d5ab"/>
+    </linearGradient>
+  </defs>
+  <text x="96" y="124" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        font-size="76" font-weight="900" fill="url(#g)" text-anchor="middle" letter-spacing="-2">S&amp;L</text>
+</svg>

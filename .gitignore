@@ -1,0 +1,5 @@
+.playwright-mcp/
+*.png
+*.jpeg
+node_modules/
+.wrangler/

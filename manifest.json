@@ -1,0 +1,13 @@
+{
+  "name": "Strong & Lean",
+  "short_name": "S&L",
+  "description": "Frictionless fitness tracking — log workouts, nail protein, watch strength climb.",
+  "start_url": "frictionless_dashboard.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0e14",
+  "theme_color": "#7c5cff",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

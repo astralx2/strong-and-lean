@@ -1,0 +1,2364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Strong &amp; Lean — Exercise Library</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7c5cff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Strong &amp; Lean">
+<style>
+:root {
+  --bg:#0b0e14; --surface:#141820; --card:#1a1f2e; --border:#252d3d;
+  --a1:#7c5cff; --a2:#23d5ab; --a3:#ff6b9d;
+  --gold:#ffd166; --good:#3ddc84; --warn:#ffb454; --dim:#6b768c;
+  --text:#e8eaf0; --sub:#9aa5b8;
+  --pri-fill:rgba(124,92,255,0.72); --pri-stroke:#7c5cff;
+  --sec-fill:rgba(35,213,171,0.35); --sec-stroke:#23d5ab;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#07090d;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  display:flex;justify-content:center;align-items:center;
+  min-height:100vh;padding:20px;
+}
+
+/* ── Phone frame ── */
+.phone{
+  width:390px;height:844px;
+  background:var(--bg);
+  border-radius:44px;
+  box-shadow:0 0 0 8px #1a1f2e,0 0 0 10px #252d3d,0 40px 80px rgba(0,0,0,.7);
+  overflow:hidden;position:relative;
+  display:flex;flex-direction:column;
+}
+
+/* ── Header ── */
+.hdr{
+  padding:52px 20px 12px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.hdr-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:12px}
+.search-wrap{position:relative}
+.search-wrap input{
+  width:100%;background:var(--card);
+  border:1px solid var(--border);border-radius:12px;
+  padding:10px 14px 10px 36px;
+  color:var(--text);font-size:15px;outline:none;
+}
+.search-wrap input::placeholder{color:var(--dim)}
+.search-wrap input:focus{border-color:var(--a1)}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:14px;pointer-events:none}
+
+/* ── Tabs ── */
+.tabs{
+  display:flex;gap:6px;padding:10px 20px 0;
+  background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.tab{
+  padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;
+  color:var(--dim);cursor:pointer;border:none;background:none;margin-bottom:10px;
+  transition:all .15s;
+}
+.tab.on{background:var(--a1);color:#fff}
+
+/* ── Equipment filter chips ── */
+.filter-row{
+  display:flex;gap:6px;padding:10px 16px;
+  overflow-x:auto;flex-shrink:0;background:var(--bg);scrollbar-width:none;
+}
+.filter-row::-webkit-scrollbar{display:none}
+.chip{
+  padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;
+  color:var(--dim);border:1px solid var(--border);background:var(--card);
+  cursor:pointer;white-space:nowrap;transition:all .15s;
+}
+.chip.on{background:rgba(124,92,255,.2);border-color:var(--a1);color:var(--a1)}
+
+/* ── Main split ── */
+.main{flex:1;display:flex;min-height:0;overflow:hidden}
+
+/* ── Body-map panel ── */
+.map-panel{
+  width:108px;flex-shrink:0;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;
+  padding:10px 6px;overflow-y:auto;scrollbar-width:none;
+}
+.map-panel::-webkit-scrollbar{display:none}
+.map-label{font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.view-toggle{display:flex;gap:4px;margin-bottom:8px}
+.view-toggle button{
+  padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;
+  border:1px solid var(--border);background:var(--card);color:var(--dim);cursor:pointer;
+}
+.view-toggle button.on{background:var(--a1);border-color:var(--a1);color:#fff}
+
+/* Body SVG zones */
+#body-svg{width:90px;cursor:pointer}
+#body-svg .zone{
+  fill:var(--card);stroke:var(--border);stroke-width:1;
+  transition:fill .2s,stroke .2s;cursor:pointer;
+}
+#body-svg .zone:hover{fill:rgba(124,92,255,.18);stroke:var(--a1)}
+#body-svg .zone.sel{fill:rgba(124,92,255,.42);stroke:var(--a1);stroke-width:1.5}
+
+/* Heatmap heat classes */
+.heat-0{fill:var(--card) !important}
+.heat-1{fill:rgba(35,213,171,.18) !important;stroke:var(--a2) !important}
+.heat-2{fill:rgba(35,213,171,.42) !important;stroke:var(--a2) !important}
+.heat-3{fill:rgba(255,180,84,.5)  !important;stroke:var(--warn) !important}
+.heat-4{fill:rgba(255,107,157,.58) !important;stroke:var(--a3) !important}
+
+.heat-btn{
+  width:100%;margin-top:8px;padding:5px 4px;border-radius:8px;
+  font-size:10px;font-weight:700;border:1px solid var(--border);
+  background:var(--card);color:var(--dim);cursor:pointer;text-align:center;
+}
+.heat-btn.on{background:rgba(35,213,171,.15);border-color:var(--a2);color:var(--a2)}
+
+/* Volume summary (heatmap mode) */
+.vol-section{margin-top:8px;width:100%}
+.vol-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.vol-name{font-size:9px;color:var(--dim)}
+.vol-pill{font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px}
+.vol-low{color:var(--warn);background:rgba(255,180,84,.1)}
+.vol-ok {color:var(--good);background:rgba(61,220,132,.1)}
+.vol-hi {color:var(--a3); background:rgba(255,107,157,.1)}
+
+/* ── Exercise list ── */
+.list-panel{flex:1;overflow-y:auto;padding:4px 0;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.section-hdr{padding:8px 14px 3px;font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.6px}
+.ex-row{
+  display:flex;align-items:center;padding:10px 12px;gap:9px;
+  cursor:pointer;border-bottom:1px solid rgba(37,45,61,.5);
+  transition:background .1s;
+}
+.ex-row:hover,.ex-row.active{background:rgba(124,92,255,.07)}
+.ex-info{flex:1;min-width:0}
+.ex-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ex-meta{font-size:11px;color:var(--dim);margin-top:1px;display:flex;gap:5px}
+.ex-badges{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.badge{padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap}
+.badge-pr {background:rgba(255,209,102,.14);color:var(--gold);border:1px solid rgba(255,209,102,.28)}
+.badge-add{background:rgba(124,92,255,.14);color:var(--a1);border:1px solid rgba(124,92,255,.28);cursor:pointer}
+.badge-add.added{background:rgba(61,220,132,.14);color:var(--good);border-color:var(--good)}
+.badge-diff{background:rgba(107,118,140,.12);color:var(--dim)}
+.diff-dot{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:3px;vertical-align:middle}
+.diff-b{background:var(--good)} .diff-i{background:var(--warn)} .diff-a{background:var(--a3)}
+.empty{padding:48px 20px;text-align:center;color:var(--dim);font-size:14px;line-height:1.6}
+
+/* ── Overlay ── */
+.overlay{
+  position:absolute;inset:0;background:rgba(7,9,13,.65);
+  z-index:9;opacity:0;pointer-events:none;transition:opacity .28s;
+}
+.overlay.show{opacity:1;pointer-events:all}
+
+/* ── Detail panel ── */
+.detail{
+  position:absolute;bottom:0;left:0;right:0;
+  background:var(--card);border-radius:24px 24px 0 0;
+  border-top:1px solid var(--border);
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.32,0,.67,0);
+  max-height:86%;overflow-y:auto;z-index:10;scrollbar-width:none;
+}
+.detail::-webkit-scrollbar{display:none}
+.detail.open{transform:translateY(0);transition:transform .3s cubic-bezier(.33,1,.68,1)}
+.detail-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0}
+.detail-inner{padding:14px 18px 36px}
+.detail-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.detail-name{font-size:20px;font-weight:700;color:var(--text)}
+.detail-sub{font-size:12px;color:var(--dim);margin-top:2px}
+.close-btn{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--border);border:none;color:var(--sub);
+  font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+
+/* Animation + muscle row */
+.anim-muscle-row{display:flex;gap:12px;margin-bottom:10px}
+.anim-box{
+  flex:1;background:#fff;border-radius:14px;
+  border:1px solid var(--border);height:118px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  position:relative;cursor:pointer;
+}
+.anim-box.no-guide{background:var(--surface);cursor:default}
+.muscle-box{
+  width:86px;flex-shrink:0;background:var(--surface);
+  border-radius:14px;border:1px solid var(--border);
+  height:118px;display:flex;align-items:center;justify-content:center;padding:6px;
+}
+.form-prev-img{width:100%;height:100%;object-fit:contain;padding:6px;display:block}
+.form-prev-placeholder{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;width:100%;background:var(--surface);
+  color:var(--dim);font-size:10px;text-align:center;gap:4px;
+}
+.form-prev-hint{
+  position:absolute;bottom:0;left:0;right:0;
+  background:rgba(124,92,255,.82);backdrop-filter:blur(2px);
+  color:#fff;font-size:10px;font-weight:700;
+  text-align:center;padding:3px 0;letter-spacing:.03em;
+}
+.muscle-legend{display:flex;gap:12px;margin-bottom:12px;padding:0 2px}
+.ml-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub)}
+.ml-dot{width:8px;height:8px;border-radius:2px}
+
+/* History card */
+.hist-card{
+  background:var(--surface);border-radius:13px;border:1px solid var(--border);
+  padding:11px 13px;margin-bottom:11px;
+}
+.card-label{font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.hist-rows{display:flex;gap:7px}
+.hist-item{flex:1;background:var(--card);border-radius:9px;padding:7px 8px;text-align:center}
+.hist-item .val{font-size:14px;font-weight:700;color:var(--text)}
+.hist-item .lbl{font-size:10px;color:var(--dim);margin-top:1px}
+.pr-row{
+  margin-top:8px;padding:6px 10px;
+  background:rgba(255,209,102,.08);border-radius:9px;border:1px solid rgba(255,209,102,.2);
+  display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gold);
+}
+.no-hist{font-size:12px;color:var(--dim);padding:4px 0}
+
+/* Cues card */
+.cues-card{
+  background:var(--surface);border-radius:13px;border:1px solid var(--border);
+  padding:11px 13px;margin-bottom:11px;
+}
+.cue-row{display:flex;gap:8px;align-items:flex-start;padding:4px 0;font-size:13px;color:var(--sub)}
+.cue-num{
+  width:18px;height:18px;border-radius:50%;
+  background:rgba(124,92,255,.2);color:var(--a1);
+  font-size:10px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+}
+
+/* Substitutes */
+.subs-label{font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.subs-list{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.sub-row{
+  display:flex;align-items:center;gap:9px;
+  background:var(--surface);border-radius:11px;border:1px solid var(--border);
+  padding:8px 11px;cursor:pointer;transition:border-color .15s;
+}
+.sub-row:hover{border-color:var(--a1)}
+.sub-info .sub-name{font-size:13px;font-weight:600;color:var(--text)}
+.sub-info .sub-why{font-size:11px;color:var(--dim)}
+
+/* Main Add button */
+.add-btn{
+  width:100%;padding:14px;border-radius:15px;
+  background:var(--a1);border:none;color:#fff;
+  font-size:16px;font-weight:700;cursor:pointer;
+  transition:opacity .15s,transform .1s;
+}
+.add-btn:active{transform:scale(.97)}
+.add-btn.added{background:var(--good)}
+
+/* ── See Correct Form button ── */
+.form-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:12px;border-radius:15px;margin-bottom:10px;
+  background:var(--surface);border:1.5px solid var(--a2);color:var(--a2);
+  font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;
+}
+.form-btn:active{transform:scale(.97);background:rgba(35,213,171,.12)}
+.form-btn.unavailable{border-color:var(--border);color:var(--dim);cursor:default}
+.form-btn-badge{font-size:10px;background:var(--a2);color:#04221b;font-weight:700;padding:2px 6px;border-radius:8px}
+.form-btn.unavailable .form-btn-badge{background:var(--border);color:var(--dim)}
+
+/* ── Form-guide overlay (full phone takeover) ── */
+.form-overlay{
+  position:absolute;inset:0;z-index:20;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  transform:translateX(100%);
+  transition:transform .32s cubic-bezier(.33,1,.68,1);
+}
+.form-overlay.open{transform:translateX(0)}
+.form-overlay-bar{
+  display:flex;align-items:center;gap:12px;
+  padding:52px 18px 14px;background:var(--surface);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.form-back-btn{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  background:var(--card);border:1px solid var(--border);color:var(--sub);
+  font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.form-overlay-title{font-size:16px;font-weight:700;color:var(--text);flex:1}
+.form-overlay-sub{font-size:11px;color:var(--dim)}
+.form-content{
+  flex:1;overflow-y:auto;
+  padding:16px;
+  display:flex;flex-direction:column;gap:20px;
+}
+.form-section-label{
+  font-size:10px;font-weight:700;color:var(--dim);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;
+}
+.form-gallery{display:flex;flex-direction:column;gap:10px;}
+.form-img-card{
+  background:#fff;border-radius:14px;overflow:hidden;
+}
+.form-img-card img{
+  width:100%;display:block;
+  object-fit:contain;max-height:220px;padding:4px 12px;
+}
+.form-img-caption{
+  background:var(--card);padding:8px 12px;
+  font-size:12px;color:var(--sub);line-height:1.4;
+}
+.form-cues{
+  background:var(--card);border-radius:14px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.form-cue{
+  display:flex;align-items:flex-start;gap:9px;
+  font-size:13px;color:var(--text);line-height:1.45;
+}
+.form-cue-tick{color:var(--a2);font-weight:700;flex-shrink:0;font-size:14px}
+.form-muscles{display:flex;flex-wrap:wrap;gap:6px;}
+.form-muscle-badge{
+  padding:4px 11px;border-radius:20px;
+  font-size:11px;font-weight:600;
+}
+.form-muscle-badge.primary{background:rgba(124,92,255,.18);color:#b09fff;}
+.form-muscle-badge.secondary{background:rgba(35,213,171,.1);color:var(--a2);}
+.form-credit{
+  font-size:10px;color:var(--dim);text-align:center;padding:4px 0 8px;
+}
+
+/* ── Quick-add toast ── */
+.add-toast{
+  position:absolute;bottom:76px;left:14px;right:14px;
+  background:linear-gradient(135deg,#7c5cff,#23d5ab);
+  border-radius:16px;padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  z-index:30;box-shadow:0 10px 30px rgba(0,0,0,.5);
+  transform:translateY(16px);opacity:0;
+  transition:transform .25s cubic-bezier(.33,1,.68,1),opacity .25s;
+  pointer-events:none;
+}
+.add-toast.show{transform:translateY(0);opacity:1;pointer-events:all}
+.add-toast-text{font-size:13px;font-weight:700;color:#fff}
+.add-toast-link{
+  font-size:12px;font-weight:700;color:#fff;text-decoration:none;
+  border:1.5px solid rgba(255,255,255,.55);border-radius:9px;
+  padding:5px 11px;white-space:nowrap;
+  transition:background .15s;
+}
+.add-toast-link:hover{background:rgba(255,255,255,.18)}
+
+/* ── Stickman animation keyframes ── */
+@keyframes push-h{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-7px)}
+}
+@keyframes hinge{
+  0%,100%{transform:rotate(0deg);transform-origin:50% 80%}
+  50%{transform:rotate(-24deg);transform-origin:50% 80%}
+}
+@keyframes squat-b{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(9px)}
+}
+@keyframes press-v{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-11px)}
+}
+@keyframes pull-v{
+  0%,100%{transform:translateY(0) rotate(-28deg);transform-origin:50% 50%}
+  50%{transform:translateY(11px) rotate(-10deg);transform-origin:50% 50%}
+}
+@keyframes row-h{
+  0%,100%{transform:translateX(0)}
+  50%{transform:translateX(-9px)}
+}
+@keyframes curl-a{
+  0%,100%{transform:rotate(0deg);transform-origin:72px 44px}
+  50%{transform:rotate(-65deg);transform-origin:72px 44px}
+}
+@keyframes push-dn{
+  0%,100%{transform:translateY(0);transform-origin:72px 40px}
+  50%{transform:translateY(10px);transform-origin:72px 40px}
+}
+.anim-el{
+  animation-duration:1.8s;
+  animation-iteration-count:infinite;
+  animation-timing-function:ease-in-out;
+}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-title">Exercise Library</div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input id="search" type="text" placeholder='Try "rdl", "OHP", "chest"' oninput="onSearch()">
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab on" onclick="setTab('all',this)">All</button>
+    <button class="tab" onclick="setTab('fav',this)">❤️ Favourites</button>
+    <button class="tab" onclick="setTab('recent',this)">Recent</button>
+  </div>
+
+  <!-- EQUIPMENT FILTER -->
+  <div class="filter-row">
+    <div class="chip on" onclick="setEquip('all',this)">All Equipment</div>
+    <div class="chip" onclick="setEquip('barbell',this)">Barbell</div>
+    <div class="chip" onclick="setEquip('dumbbell',this)">Dumbbell</div>
+    <div class="chip" onclick="setEquip('cable',this)">Cable</div>
+    <div class="chip" onclick="setEquip('bodyweight',this)">Bodyweight</div>
+    <div class="chip" onclick="setEquip('machine',this)">Machine</div>
+  </div>
+
+  <!-- MAIN SPLIT -->
+  <div class="main">
+
+    <!-- BODY MAP -->
+    <div class="map-panel">
+      <div class="map-label">Filter</div>
+      <div class="view-toggle">
+        <button class="on" onclick="setView('front',this)">F</button>
+        <button onclick="setView('back',this)">B</button>
+      </div>
+
+      <svg id="body-svg" viewBox="0 0 90 200" xmlns="http://www.w3.org/2000/svg">
+        <!-- FRONT VIEW -->
+        <g id="gFront">
+          <ellipse cx="45" cy="16" rx="11" ry="13" fill="#1a1f2e" stroke="#252d3d" stroke-width="1"/>
+          <rect x="41" y="28" width="8" height="6" rx="2" fill="#1a1f2e" stroke="#252d3d" stroke-width="1"/>
+          <path id="z-chest"       class="zone" onclick="toggleZone('chest')"      d="M28,34 Q45,30 62,34 L62,56 Q45,60 28,56 Z"/>
+          <ellipse id="z-fdelt-l"  class="zone" onclick="toggleZone('front_delt')" cx="22" cy="42" rx="7" ry="9"/>
+          <ellipse id="z-fdelt-r"  class="zone" onclick="toggleZone('front_delt')" cx="68" cy="42" rx="7" ry="9"/>
+          <path id="z-bicep-l"     class="zone" onclick="toggleZone('biceps')"     d="M14,52 Q10,58 11,66 Q15,68 20,66 Q22,58 20,52 Z"/>
+          <path id="z-bicep-r"     class="zone" onclick="toggleZone('biceps')"     d="M76,52 Q80,58 79,66 Q75,68 70,66 Q68,58 70,52 Z"/>
+          <path id="z-farm-l"      class="zone" onclick="toggleZone('forearms')"   d="M10,67 Q8,75 9,83 Q14,84 19,83 Q21,75 20,67 Z"/>
+          <path id="z-farm-r"      class="zone" onclick="toggleZone('forearms')"   d="M80,67 Q82,75 81,83 Q76,84 71,83 Q69,75 70,67 Z"/>
+          <path id="z-abs"         class="zone" onclick="toggleZone('abs')"        d="M32,56 Q45,60 58,56 L58,82 Q45,86 32,82 Z"/>
+          <path id="z-obl-l"       class="zone" onclick="toggleZone('obliques')"   d="M25,58 L32,56 L32,80 Q27,78 25,72 Z"/>
+          <path id="z-obl-r"       class="zone" onclick="toggleZone('obliques')"   d="M65,58 L58,56 L58,80 Q63,78 65,72 Z"/>
+          <path id="z-quad-l"      class="zone" onclick="toggleZone('quads')"      d="M32,86 Q38,84 45,86 L45,126 Q38,130 32,126 Z"/>
+          <path id="z-quad-r"      class="zone" onclick="toggleZone('quads')"      d="M58,86 Q52,84 45,86 L45,126 Q52,130 58,126 Z"/>
+          <path id="z-calf-fl"     class="zone" onclick="toggleZone('calves')"     d="M32,132 Q36,130 41,132 L41,162 Q36,165 32,162 Z"/>
+          <path id="z-calf-fr"     class="zone" onclick="toggleZone('calves')"     d="M58,132 Q54,130 49,132 L49,162 Q54,165 58,162 Z"/>
+          <ellipse cx="37" cy="129" rx="6" ry="5" fill="#141820" stroke="#252d3d" stroke-width="1"/>
+          <ellipse cx="53" cy="129" rx="6" ry="5" fill="#141820" stroke="#252d3d" stroke-width="1"/>
+        </g>
+        <!-- BACK VIEW -->
+        <g id="gBack" style="display:none">
+          <ellipse cx="45" cy="16" rx="11" ry="13" fill="#1a1f2e" stroke="#252d3d" stroke-width="1"/>
+          <rect x="41" y="28" width="8" height="6" rx="2" fill="#1a1f2e" stroke="#252d3d" stroke-width="1"/>
+          <path id="z-traps"       class="zone" onclick="toggleZone('traps')"      d="M31,33 Q45,28 59,33 L58,42 Q45,38 32,42 Z"/>
+          <path id="z-uback"       class="zone" onclick="toggleZone('upper_back')" d="M28,42 Q45,38 62,42 L62,58 Q45,62 28,58 Z"/>
+          <ellipse id="z-rdelt-l"  class="zone" onclick="toggleZone('rear_delt')"  cx="22" cy="44" rx="7" ry="8"/>
+          <ellipse id="z-rdelt-r"  class="zone" onclick="toggleZone('rear_delt')"  cx="68" cy="44" rx="7" ry="8"/>
+          <path id="z-tri-l"       class="zone" onclick="toggleZone('triceps')"    d="M14,52 Q10,60 12,68 Q17,69 21,68 Q23,60 21,52 Z"/>
+          <path id="z-tri-r"       class="zone" onclick="toggleZone('triceps')"    d="M76,52 Q80,60 78,68 Q73,69 69,68 Q67,60 69,52 Z"/>
+          <path id="z-lat-l"       class="zone" onclick="toggleZone('lats')"       d="M26,44 L32,58 L32,76 Q27,72 24,62 Z"/>
+          <path id="z-lat-r"       class="zone" onclick="toggleZone('lats')"       d="M64,44 L58,58 L58,76 Q63,72 66,62 Z"/>
+          <path id="z-lback"       class="zone" onclick="toggleZone('lower_back')" d="M32,68 Q45,72 58,68 L58,84 Q45,88 32,84 Z"/>
+          <path id="z-glute-l"     class="zone" onclick="toggleZone('glutes')"     d="M32,84 Q38,80 45,84 L45,100 Q38,104 32,100 Z"/>
+          <path id="z-glute-r"     class="zone" onclick="toggleZone('glutes')"     d="M58,84 Q52,80 45,84 L45,100 Q52,104 58,100 Z"/>
+          <path id="z-ham-l"       class="zone" onclick="toggleZone('hamstrings')" d="M32,100 Q38,96 45,100 L45,130 Q38,133 32,130 Z"/>
+          <path id="z-ham-r"       class="zone" onclick="toggleZone('hamstrings')" d="M58,100 Q52,96 45,100 L45,130 Q52,133 58,130 Z"/>
+          <path id="z-calf-bl"     class="zone" onclick="toggleZone('calves')"     d="M32,133 Q36,131 41,133 L41,162 Q36,165 32,162 Z"/>
+          <path id="z-calf-br"     class="zone" onclick="toggleZone('calves')"     d="M58,133 Q54,131 49,133 L49,162 Q54,165 58,162 Z"/>
+        </g>
+      </svg>
+
+      <button class="heat-btn" id="heatBtn" onclick="toggleHeat()">🌡 This Week</button>
+      <div class="vol-section" id="volSection" style="display:none">
+        <div class="vol-row"><span class="vol-name">Chest</span><span class="vol-pill vol-hi">8 sets</span></div>
+        <div class="vol-row"><span class="vol-name">Back</span><span class="vol-pill vol-ok">6 sets</span></div>
+        <div class="vol-row"><span class="vol-name">Arms</span><span class="vol-pill vol-ok">5 sets</span></div>
+        <div class="vol-row"><span class="vol-name">Shoulders</span><span class="vol-pill vol-low">2 sets</span></div>
+        <div class="vol-row"><span class="vol-name">Legs</span><span class="vol-pill vol-low">3 sets</span></div>
+      </div>
+    </div>
+
+    <!-- EXERCISE LIST -->
+    <div class="list-panel" id="listPanel"></div>
+  </div>
+
+  <!-- OVERLAY -->
+  <div class="overlay" id="overlay" onclick="closeDetail()"></div>
+
+  <!-- DETAIL PANEL -->
+  <div class="detail" id="detail">
+    <div class="detail-handle"></div>
+    <div class="detail-inner" id="detailInner"></div>
+  </div>
+
+  <!-- QUICK-ADD TOAST -->
+  <div class="add-toast" id="addToast">
+    <span class="add-toast-text" id="addToastText">✓ Added to session</span>
+    <a class="add-toast-link" id="addToastLink" href="frictionless_logging.html">Log it now →</a>
+  </div>
+
+  <!-- FORM GUIDE OVERLAY -->
+  <div class="form-overlay" id="formOverlay">
+    <div class="form-overlay-bar">
+      <button class="form-back-btn" onclick="closeFormGuide()">←</button>
+      <div>
+        <div class="form-overlay-title" id="formOverlayTitle">Correct Form</div>
+        <div class="form-overlay-sub" id="formOverlaySub">Illustrations · Cues · Muscles</div>
+      </div>
+    </div>
+    <div class="form-content" id="formContent"></div>
+  </div>
+
+</div>
+<!-- JS injected in Phase 2 & 3 & 4 -->
+<script>
+// ══════════════════════════════════════════════
+// PHASE 2 — DATA + SVG GENERATORS
+// ══════════════════════════════════════════════
+
+const EX = [
+  {
+    id:'bench-press', name:'Bench Press', aliases:['bb bench','flat bench','chest press'],
+    primary:['chest'], secondary:['front_delt','triceps'],
+    equip:'barbell', pattern:'Push · Horizontal', diff:'intermediate', anim:'push-h',
+    cues:['Retract scapula before unracking','Bar to lower chest — touch lightly','Press in a slight arc toward the rack'],
+    hist:{last:'4 days ago',w:85,r:5,pr:{w:87.5,r:3,date:'3 weeks ago'},sessions:[80,82.5,85]},
+    nearPR:true, weekSets:6, fav:true, recent:true,
+    subs:['dumbbell-bench','cable-fly','push-up']
+  },
+  {
+    id:'incline-bench', name:'Incline Bench Press', aliases:['incline press','incline bb'],
+    primary:['chest'], secondary:['front_delt','triceps'],
+    equip:'barbell', pattern:'Push · Horizontal', diff:'intermediate', anim:'push-h',
+    cues:['30–45° incline only','Lower to upper chest','Keep elbows at ~60° from torso'],
+    hist:{last:'4 days ago',w:70,r:6,pr:{w:75,r:4,date:'2 weeks ago'},sessions:[65,67.5,70]},
+    nearPR:false, weekSets:4, fav:false, recent:true,
+    subs:['cable-fly','dumbbell-bench','push-up']
+  },
+  {
+    id:'dumbbell-bench', name:'Dumbbell Bench Press', aliases:['db bench','dumbbell press'],
+    primary:['chest'], secondary:['front_delt','triceps'],
+    equip:'dumbbell', pattern:'Push · Horizontal', diff:'beginner', anim:'push-h',
+    cues:['Full ROM — go deeper than barbell','Control the eccentric (3s down)','Neutral grip reduces shoulder stress'],
+    hist:{last:'1 week ago',w:32,r:10,pr:{w:36,r:6,date:'1 month ago'},sessions:[28,30,32]},
+    nearPR:false, weekSets:2, fav:false, recent:false,
+    subs:['bench-press','cable-fly','push-up']
+  },
+  {
+    id:'cable-fly', name:'Cable Fly', aliases:['cable crossover','cable cross'],
+    primary:['chest'], secondary:['front_delt'],
+    equip:'cable', pattern:'Isolation', diff:'beginner', anim:'push-h',
+    cues:['Slight elbow bend throughout','Squeeze at the midline','Pulley at chest height'],
+    hist:{last:'4 days ago',w:15,r:12,pr:{w:17,r:10,date:'6 weeks ago'},sessions:[12,14,15]},
+    nearPR:false, weekSets:3, fav:false, recent:true,
+    subs:['dumbbell-bench','incline-bench']
+  },
+  {
+    id:'push-up', name:'Push-Up', aliases:['press up','pushup'],
+    primary:['chest'], secondary:['front_delt','triceps','abs'],
+    equip:'bodyweight', pattern:'Push · Horizontal', diff:'beginner', anim:'push-h',
+    cues:['Body straight — no hip sag','Hands just outside shoulders','Chest nearly touches floor at bottom'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['bench-press','dumbbell-bench']
+  },
+  {
+    id:'rdl', name:'Romanian Deadlift', aliases:['rdl','stiff leg deadlift','sldl'],
+    primary:['hamstrings'], secondary:['glutes','lower_back','lats'],
+    equip:'barbell', pattern:'Hinge', diff:'intermediate', anim:'hinge',
+    cues:['Hinge at hips — not a squat','Bar stays close to legs throughout','Feel hamstring stretch at bottom; stop there'],
+    hist:{last:'3 days ago',w:80,r:8,pr:{w:100,r:5,date:'2 months ago'},sessions:[72.5,77.5,80]},
+    nearPR:false, weekSets:3, fav:true, recent:true,
+    subs:['deadlift','good-morning','leg-curl']
+  },
+  {
+    id:'deadlift', name:'Deadlift', aliases:['dl','conventional deadlift'],
+    primary:['lower_back'], secondary:['hamstrings','glutes','traps','lats'],
+    equip:'barbell', pattern:'Hinge', diff:'advanced', anim:'hinge',
+    cues:['Brace and breath before lift','Bar over mid-foot at setup','Drive the floor away — don\'t pull the bar'],
+    hist:{last:'6 days ago',w:140,r:5,pr:{w:150,r:3,date:'3 weeks ago'},sessions:[130,135,140]},
+    nearPR:true, weekSets:2, fav:true, recent:true,
+    subs:['rdl','trap-bar-deadlift']
+  },
+  {
+    id:'squat', name:'Back Squat', aliases:['bb squat','barbell squat','squat'],
+    primary:['quads'], secondary:['glutes','hamstrings','lower_back'],
+    equip:'barbell', pattern:'Squat', diff:'advanced', anim:'squat',
+    cues:['Brace hard before descent','Knees track over toes — push out','Hip crease below parallel before ascending'],
+    hist:{last:'5 days ago',w:115,r:5,pr:{w:120,r:5,date:'1 month ago'},sessions:[107.5,110,115]},
+    nearPR:true, weekSets:5, fav:true, recent:true,
+    subs:['goblet-squat','leg-press','front-squat']
+  },
+  {
+    id:'goblet-squat', name:'Goblet Squat', aliases:['goblet'],
+    primary:['quads'], secondary:['glutes','abs'],
+    equip:'dumbbell', pattern:'Squat', diff:'beginner', anim:'squat',
+    cues:['Hold DB at chest height','Elbows between knees at bottom','Best exercise to learn squat pattern'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['squat','leg-press']
+  },
+  {
+    id:'leg-press', name:'Leg Press', aliases:['machine leg press'],
+    primary:['quads'], secondary:['glutes','hamstrings'],
+    equip:'machine', pattern:'Squat', diff:'beginner', anim:'squat',
+    cues:['Don\'t lock knees at top — keep tension','Feet mid-platform, shoulder-width','Don\'t let lower back peel off seat'],
+    hist:{last:'3 days ago',w:140,r:12,pr:{w:160,r:10,date:'6 weeks ago'},sessions:[120,130,140]},
+    nearPR:false, weekSets:3, fav:false, recent:true,
+    subs:['squat','goblet-squat']
+  },
+  {
+    id:'ohp', name:'Overhead Press', aliases:['ohp','military press','shoulder press','barbell press'],
+    primary:['front_delt'], secondary:['triceps','traps'],
+    equip:'barbell', pattern:'Push · Vertical', diff:'intermediate', anim:'press-v',
+    cues:['Bar from clavicle','Head slightly back as bar passes nose','Lock out fully at top'],
+    hist:{last:'4 days ago',w:60,r:5,pr:{w:65,r:3,date:'5 weeks ago'},sessions:[55,57.5,60]},
+    nearPR:false, weekSets:2, fav:true, recent:true,
+    subs:['db-ohp','arnold-press','lateral-raise']
+  },
+  {
+    id:'lateral-raise', name:'Lateral Raise', aliases:['lat raise','side raise','side delt'],
+    primary:['front_delt'], secondary:['traps'],
+    equip:'dumbbell', pattern:'Isolation', diff:'beginner', anim:'press-v',
+    cues:['Lead with elbows — not hands','Stop at shoulder height','Slight forward lean for side delt focus'],
+    hist:{last:'4 days ago',w:12,r:12,pr:{w:14,r:10,date:'3 weeks ago'},sessions:[10,11,12]},
+    nearPR:true, weekSets:2, fav:false, recent:true,
+    subs:['ohp','cable-lateral']
+  },
+  {
+    id:'lat-pulldown', name:'Lat Pulldown', aliases:['pulldown','cable pulldown'],
+    primary:['lats'], secondary:['biceps','rear_delt'],
+    equip:'cable', pattern:'Pull · Vertical', diff:'beginner', anim:'pull-v',
+    cues:['Initiate with lats — not arms','Slight lean back, pull to upper chest','Control negative all the way up'],
+    hist:{last:'2 days ago',w:65,r:10,pr:{w:72.5,r:8,date:'6 weeks ago'},sessions:[60,62.5,65]},
+    nearPR:false, weekSets:4, fav:false, recent:true,
+    subs:['pull-up','bent-over-row']
+  },
+  {
+    id:'pull-up', name:'Pull-Up', aliases:['pullup','chin up','chinup'],
+    primary:['lats'], secondary:['biceps','rear_delt','upper_back'],
+    equip:'bodyweight', pattern:'Pull · Vertical', diff:'intermediate', anim:'pull-v',
+    cues:['Dead hang start — full shoulder extension','Drive elbows to hips, not just pull arms','Chin clears bar at top'],
+    hist:{last:'2 days ago',w:0,r:9,pr:{w:0,r:12,date:'2 months ago'},sessions:[0,0,0]},
+    nearPR:false, weekSets:4, fav:true, recent:true,
+    subs:['lat-pulldown','bent-over-row']
+  },
+  {
+    id:'bent-over-row', name:'Bent-Over Row', aliases:['barbell row','bb row','pendlay row'],
+    primary:['upper_back'], secondary:['lats','biceps','rear_delt'],
+    equip:'barbell', pattern:'Pull · Horizontal', diff:'intermediate', anim:'row-h',
+    cues:['Torso 45°–parallel — don\'t stand up','Pull to lower chest / navel','Squeeze shoulder blades at top'],
+    hist:{last:'2 days ago',w:75,r:8,pr:{w:85,r:5,date:'7 weeks ago'},sessions:[70,72.5,75]},
+    nearPR:false, weekSets:4, fav:true, recent:true,
+    subs:['seated-row','lat-pulldown','pull-up']
+  },
+  {
+    id:'seated-row', name:'Seated Cable Row', aliases:['cable row','seated row'],
+    primary:['upper_back'], secondary:['lats','biceps'],
+    equip:'cable', pattern:'Pull · Horizontal', diff:'beginner', anim:'row-h',
+    cues:['Sit tall — no rounding at bottom','Pull to navel; elbows close to body','Reach fully forward between reps'],
+    hist:{last:'2 days ago',w:60,r:10,pr:{w:67.5,r:8,date:'4 weeks ago'},sessions:[55,57.5,60]},
+    nearPR:false, weekSets:2, fav:false, recent:true,
+    subs:['bent-over-row','lat-pulldown']
+  },
+  {
+    id:'face-pull', name:'Face Pull', aliases:['facepull','face pull rope'],
+    primary:['rear_delt'], secondary:['traps','upper_back'],
+    equip:'cable', pattern:'Pull · Horizontal', diff:'beginner', anim:'row-h',
+    cues:['Pull to forehead — not chin','External rotate at end (hands go back)','High anchor; elbows above the rope'],
+    hist:{last:'4 days ago',w:22.5,r:15,pr:{w:25,r:12,date:'1 month ago'},sessions:[20,22.5,22.5]},
+    nearPR:false, weekSets:3, fav:true, recent:true,
+    subs:['bent-over-row','seated-row']
+  },
+  {
+    id:'bicep-curl', name:'Bicep Curl', aliases:['curl','bb curl','barbell curl'],
+    primary:['biceps'], secondary:['forearms'],
+    equip:'barbell', pattern:'Isolation', diff:'beginner', anim:'curl',
+    cues:['No swinging — elbows glued to sides','Supinate (rotate) as you curl','Control the eccentric — resist gravity down'],
+    hist:{last:'5 days ago',w:40,r:10,pr:{w:45,r:8,date:'8 weeks ago'},sessions:[35,37.5,40]},
+    nearPR:false, weekSets:3, fav:false, recent:false,
+    subs:['hammer-curl','lat-pulldown']
+  },
+  {
+    id:'tricep-pushdown', name:'Tricep Pushdown', aliases:['pushdown','cable pushdown','tricep extension'],
+    primary:['triceps'], secondary:['forearms'],
+    equip:'cable', pattern:'Isolation', diff:'beginner', anim:'push-dn',
+    cues:['Elbows pinned at sides — they don\'t move','Full extension at the bottom','Control the weight on the way up'],
+    hist:{last:'4 days ago',w:30,r:12,pr:{w:35,r:10,date:'5 weeks ago'},sessions:[27.5,30,30]},
+    nearPR:false, weekSets:3, fav:false, recent:true,
+    subs:['bench-press','ohp']
+  },
+  {
+    id:'plank', name:'Plank', aliases:['core plank','ab plank'],
+    primary:['abs'], secondary:['obliques','lower_back'],
+    equip:'bodyweight', pattern:'Core', diff:'beginner', anim:'squat',
+    cues:['Neutral spine — no hip sag or pike','Brace abs like you\'re about to be punched','Breathe — don\'t hold breath'],
+    hist:{last:'6 days ago',w:0,r:60,pr:{w:0,r:90,date:'3 weeks ago'},sessions:[0,0,0]},
+    nearPR:false, weekSets:2, fav:false, recent:false,
+    subs:['crunch','leg-raise']
+  },
+  // ── Next 30 ──────────────────────────────────
+  {
+    id:'hip-thrust', name:'Hip Thrust', aliases:['barbell hip thrust','glute bridge','hip bridge'],
+    primary:['glutes'], secondary:['hamstrings','abs'],
+    equip:'barbell', pattern:'Hinge', diff:'intermediate', anim:'hinge',
+    cues:['Upper back on bench edge, bar over hip crease','Drive hips up until body is a straight line','Squeeze glutes hard at the top — don\'t hyperextend spine'],
+    hist:{last:'3 days ago',w:100,r:8,pr:{w:120,r:6,date:'5 weeks ago'},sessions:[85,92.5,100]},
+    nearPR:false, weekSets:4, fav:true, recent:true,
+    subs:['rdl','good-morning','squat']
+  },
+  {
+    id:'bulgarian-split-squat', name:'Bulgarian Split Squat', aliases:['bss','split squat','rear foot elevated'],
+    primary:['quads','glutes'], secondary:['hamstrings','abs'],
+    equip:'dumbbell', pattern:'Squat', diff:'intermediate', anim:'squat',
+    cues:['Rear foot on bench, front foot far enough forward','Front shin stays near vertical','Lower until back knee nearly touches floor'],
+    hist:{last:'1 week ago',w:20,r:8,pr:{w:25,r:6,date:'3 weeks ago'},sessions:[15,17.5,20]},
+    nearPR:false, weekSets:2, fav:false, recent:false,
+    subs:['lunge','squat','leg-press']
+  },
+  {
+    id:'front-squat', name:'Front Squat', aliases:['bb front squat','front loaded squat'],
+    primary:['quads'], secondary:['glutes','upper_back','abs'],
+    equip:'barbell', pattern:'Squat', diff:'advanced', anim:'squat',
+    cues:['Elbows high and forward — rack position','More upright torso than back squat','Knees track over toes; depth = parallel or below'],
+    hist:{last:'2 weeks ago',w:80,r:5,pr:{w:90,r:3,date:'2 months ago'},sessions:[70,75,80]},
+    nearPR:false, weekSets:1, fav:false, recent:false,
+    subs:['squat','goblet-squat','leg-press']
+  },
+  {
+    id:'sumo-deadlift', name:'Sumo Deadlift', aliases:['sumo dl','wide stance deadlift'],
+    primary:['glutes','quads'], secondary:['hamstrings','lower_back','traps'],
+    equip:'barbell', pattern:'Hinge', diff:'advanced', anim:'hinge',
+    cues:['Wide stance, toes pointed 30–45° out','Push knees out as you pull','More upright torso vs conventional; hips closer to bar'],
+    hist:{last:'1 week ago',w:130,r:5,pr:{w:145,r:3,date:'6 weeks ago'},sessions:[120,125,130]},
+    nearPR:false, weekSets:2, fav:false, recent:false,
+    subs:['deadlift','rdl','trap-bar-deadlift']
+  },
+  {
+    id:'db-shoulder-press', name:'Dumbbell Shoulder Press', aliases:['db press','dumbbell ohp','dumbbell press'],
+    primary:['front_delt'], secondary:['triceps','traps'],
+    equip:'dumbbell', pattern:'Push · Vertical', diff:'beginner', anim:'press-v',
+    cues:['Start at ear level, elbows at 90°','Press straight up, wrists neutral','Slight arc inward at the top — don\'t clang dumbbells'],
+    hist:{last:'5 days ago',w:22,r:10,pr:{w:26,r:8,date:'4 weeks ago'},sessions:[18,20,22]},
+    nearPR:false, weekSets:3, fav:false, recent:true,
+    subs:['ohp','arnold-press','lateral-raise']
+  },
+  {
+    id:'arnold-press', name:'Arnold Press', aliases:['arnold','rotating press'],
+    primary:['front_delt','rear_delt'], secondary:['triceps','traps'],
+    equip:'dumbbell', pattern:'Push · Vertical', diff:'intermediate', anim:'press-v',
+    cues:['Start with palms facing you, elbows tucked','Rotate palms out as you press up','Hits all three delt heads in one movement'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['db-shoulder-press','ohp','lateral-raise']
+  },
+  {
+    id:'front-raise', name:'Front Raise', aliases:['dumbbell front raise','plate raise'],
+    primary:['front_delt'], secondary:['traps'],
+    equip:'dumbbell', pattern:'Isolation', diff:'beginner', anim:'press-v',
+    cues:['Raise to just above shoulder height','Slight elbow bend — not a straight-arm raise','Control the descent — 3 seconds down'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['lateral-raise','ohp','db-shoulder-press']
+  },
+  {
+    id:'chest-dip', name:'Dips', aliases:['chest dip','tricep dip','parallel bar dip'],
+    primary:['chest','triceps'], secondary:['front_delt'],
+    equip:'bodyweight', pattern:'Push · Vertical', diff:'intermediate', anim:'push-h',
+    cues:['Lean slightly forward to bias chest; upright = triceps','Lower until shoulders below elbow level','Keep elbows from flaring too wide'],
+    hist:{last:'1 week ago',w:0,r:12,pr:{w:10,r:8,date:'1 month ago'},sessions:[0,0,0]},
+    nearPR:false, weekSets:2, fav:false, recent:false,
+    subs:['bench-press','close-grip-bench','push-up']
+  },
+  {
+    id:'close-grip-bench', name:'Close-Grip Bench Press', aliases:['cgbp','close grip bench','narrow bench'],
+    primary:['triceps'], secondary:['chest','front_delt'],
+    equip:'barbell', pattern:'Push · Horizontal', diff:'intermediate', anim:'push-h',
+    cues:['Hands shoulder-width — not super narrow','Keep elbows tucked to body throughout','Touch lower chest, full ROM'],
+    hist:{last:'2 weeks ago',w:70,r:8,pr:{w:77.5,r:6,date:'2 months ago'},sessions:[65,67.5,70]},
+    nearPR:false, weekSets:2, fav:false, recent:false,
+    subs:['tricep-pushdown','skull-crusher','chest-dip']
+  },
+  {
+    id:'skull-crusher', name:'Skull Crusher', aliases:['lying tricep extension','french press','ez skull crusher'],
+    primary:['triceps'], secondary:[],
+    equip:'barbell', pattern:'Isolation', diff:'intermediate', anim:'push-h',
+    cues:['Lower bar to forehead (or behind head for more stretch)','Keep upper arms perpendicular to floor throughout','Extend fully at the top — squeeze triceps'],
+    hist:{last:'5 days ago',w:35,r:10,pr:{w:40,r:8,date:'6 weeks ago'},sessions:[30,32.5,35]},
+    nearPR:false, weekSets:3, fav:false, recent:true,
+    subs:['tricep-pushdown','close-grip-bench','overhead-tricep']
+  },
+  {
+    id:'overhead-tricep', name:'Overhead Tricep Extension', aliases:['db overhead tricep','single arm overhead','overhead extension'],
+    primary:['triceps'], secondary:[],
+    equip:'dumbbell', pattern:'Isolation', diff:'beginner', anim:'push-h',
+    cues:['Hold dumbbell overhead with both hands, elbows close','Lower behind head until fully stretched','Press to full lockout — long head gets max stretch'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['skull-crusher','tricep-pushdown','close-grip-bench']
+  },
+  {
+    id:'tricep-kickback', name:'Tricep Kickback', aliases:['db kickback','dumbbell kickback'],
+    primary:['triceps'], secondary:[],
+    equip:'dumbbell', pattern:'Isolation', diff:'beginner', anim:'push-h',
+    cues:['Hinge forward until torso is parallel to floor','Upper arm stays pinned against body','Extend to full lockout and hold 1 second'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['tricep-pushdown','overhead-tricep','skull-crusher']
+  },
+  {
+    id:'hammer-curl', name:'Hammer Curl', aliases:['neutral curl','db hammer'],
+    primary:['biceps'], secondary:['forearms'],
+    equip:'dumbbell', pattern:'Isolation', diff:'beginner', anim:'curl',
+    cues:['Neutral grip (palms facing each other) throughout','Elbow pinned — only forearm moves','Hits brachialis and brachioradialis harder than supinated curl'],
+    hist:{last:'5 days ago',w:18,r:12,pr:{w:22,r:10,date:'6 weeks ago'},sessions:[14,16,18]},
+    nearPR:false, weekSets:2, fav:false, recent:true,
+    subs:['bicep-curl','preacher-curl','cable-curl']
+  },
+  {
+    id:'ez-bar-curl', name:'EZ Bar Curl', aliases:['ez curl','easy bar curl'],
+    primary:['biceps'], secondary:['forearms'],
+    equip:'barbell', pattern:'Isolation', diff:'beginner', anim:'curl',
+    cues:['Semi-supinated grip reduces wrist strain vs straight bar','Keep elbows at sides — don\'t swing','Squeeze hard at the top before lowering'],
+    hist:{last:'3 weeks ago',w:30,r:10,pr:{w:35,r:8,date:'3 months ago'},sessions:[25,27.5,30]},
+    nearPR:false, weekSets:1, fav:false, recent:false,
+    subs:['bicep-curl','hammer-curl','preacher-curl']
+  },
+  {
+    id:'incline-curl', name:'Incline Dumbbell Curl', aliases:['incline curl','spider curl'],
+    primary:['biceps'], secondary:['forearms'],
+    equip:'dumbbell', pattern:'Isolation', diff:'beginner', anim:'curl',
+    cues:['Set bench at 60° — arms hang behind body','Maximum long-head stretch at the bottom','Curl slowly — this is a stretch-focused variation'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['bicep-curl','preacher-curl','cable-curl']
+  },
+  {
+    id:'preacher-curl', name:'Preacher Curl', aliases:['preacher','scott curl'],
+    primary:['biceps'], secondary:['forearms'],
+    equip:'barbell', pattern:'Isolation', diff:'beginner', anim:'curl',
+    cues:['Arms rest on pad — eliminates cheating','Lower to full extension on every rep','Don\'t hyperextend at the bottom — stop before lockout'],
+    hist:{last:'2 weeks ago',w:25,r:10,pr:{w:30,r:8,date:'2 months ago'},sessions:[20,22.5,25]},
+    nearPR:false, weekSets:1, fav:false, recent:false,
+    subs:['bicep-curl','incline-curl','cable-curl']
+  },
+  {
+    id:'cable-curl', name:'Cable Curl', aliases:['low cable curl','cable bicep curl'],
+    primary:['biceps'], secondary:['forearms'],
+    equip:'cable', pattern:'Isolation', diff:'beginner', anim:'curl',
+    cues:['Constant tension throughout the entire ROM','Elbow pinned — use a strict curl motion','Supinate at the top for peak contraction'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['bicep-curl','hammer-curl','preacher-curl']
+  },
+  {
+    id:'leg-curl', name:'Leg Curl', aliases:['hamstring curl','lying leg curl','machine curl'],
+    primary:['hamstrings'], secondary:['glutes'],
+    equip:'machine', pattern:'Isolation', diff:'beginner', anim:'hinge',
+    cues:['Full extension at the start — stretch the hamstrings','Curl heel toward glutes; pause at peak','Avoid lifting hips off the pad during the movement'],
+    hist:{last:'3 days ago',w:45,r:12,pr:{w:52,r:10,date:'4 weeks ago'},sessions:[40,42.5,45]},
+    nearPR:false, weekSets:3, fav:false, recent:true,
+    subs:['rdl','good-morning','deadlift']
+  },
+  {
+    id:'leg-extension', name:'Leg Extension', aliases:['quad extension','machine extension'],
+    primary:['quads'], secondary:[],
+    equip:'machine', pattern:'Isolation', diff:'beginner', anim:'squat',
+    cues:['Full extension at the top — squeeze quads','Control the descent — don\'t let weight slam down','Keep back flat against the pad throughout'],
+    hist:{last:'3 days ago',w:55,r:15,pr:{w:65,r:12,date:'3 weeks ago'},sessions:[50,52.5,55]},
+    nearPR:false, weekSets:3, fav:false, recent:true,
+    subs:['squat','goblet-squat','leg-press']
+  },
+  {
+    id:'calf-raise', name:'Calf Raise', aliases:['standing calf raise','seated calf raise','machine calf'],
+    primary:['calves'], secondary:[],
+    equip:'machine', pattern:'Isolation', diff:'beginner', anim:'squat',
+    cues:['Full ROM — deep stretch at the bottom, full rise at top','Pause at the top; calves respond to time under tension','Slow eccentric (3s down) for growth'],
+    hist:{last:'4 days ago',w:80,r:15,pr:{w:100,r:12,date:'1 month ago'},sessions:[70,75,80]},
+    nearPR:false, weekSets:2, fav:false, recent:false,
+    subs:['squat','lunge','step-up']
+  },
+  {
+    id:'good-morning', name:'Good Morning', aliases:['barbell good morning','gm'],
+    primary:['hamstrings','lower_back'], secondary:['glutes','abs'],
+    equip:'barbell', pattern:'Hinge', diff:'intermediate', anim:'hinge',
+    cues:['Bar on upper back; hinge forward until torso is ~parallel','Feel the hamstring stretch — stop before rounding','Drive hips forward to return to standing'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['rdl','hyperextension','deadlift']
+  },
+  {
+    id:'hyperextension', name:'Back Extension', aliases:['hyperextension','45 degree extension','back raise'],
+    primary:['lower_back'], secondary:['glutes','hamstrings'],
+    equip:'machine', pattern:'Hinge', diff:'beginner', anim:'hinge',
+    cues:['Hinge at hips — don\'t round the lower back','Rise until body is in a straight line — no hyperextension','Add weight (plate at chest) as you progress'],
+    hist:{last:'1 week ago',w:20,r:15,pr:{w:30,r:12,date:'3 months ago'},sessions:[10,15,20]},
+    nearPR:false, weekSets:2, fav:false, recent:false,
+    subs:['good-morning','rdl','plank']
+  },
+  {
+    id:'lunge', name:'Dumbbell Lunge', aliases:['walking lunge','db lunge','lunge'],
+    primary:['quads','glutes'], secondary:['hamstrings','calves'],
+    equip:'dumbbell', pattern:'Squat', diff:'beginner', anim:'squat',
+    cues:['Step far enough forward — front shin stays vertical','Lower back knee toward floor without touching','Keep torso upright; don\'t let knee cave inward'],
+    hist:{last:'1 week ago',w:16,r:10,pr:{w:20,r:10,date:'6 weeks ago'},sessions:[12,14,16]},
+    nearPR:false, weekSets:2, fav:false, recent:false,
+    subs:['bulgarian-split-squat','step-up','leg-press']
+  },
+  {
+    id:'step-up', name:'Step-Up', aliases:['box step up','dumbbell step up'],
+    primary:['quads','glutes'], secondary:['hamstrings'],
+    equip:'dumbbell', pattern:'Squat', diff:'beginner', anim:'squat',
+    cues:['Use a knee-height box for optimal glute activation','Drive through the heel of the elevated foot','Don\'t push off the floor with the trailing foot'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['lunge','bulgarian-split-squat','leg-press']
+  },
+  {
+    id:'crunch', name:'Crunch', aliases:['ab crunch','crunches','sit-up'],
+    primary:['abs'], secondary:['obliques'],
+    equip:'bodyweight', pattern:'Core', diff:'beginner', anim:'squat',
+    cues:['Curl the spine — don\'t just sit up','Only lift shoulder blades off the floor','Exhale fully as you crunch; inhale on the way down'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['plank','leg-raise','cable-crunch']
+  },
+  {
+    id:'leg-raise', name:'Hanging Leg Raise', aliases:['hanging leg raise','hlr','knee raise'],
+    primary:['abs'], secondary:['obliques'],
+    equip:'bodyweight', pattern:'Core', diff:'intermediate', anim:'pull-v',
+    cues:['Start from a dead hang — no momentum','Raise legs to 90° or higher (toes to bar for advanced)','Lower slowly — resist gravity for more time under tension'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['crunch','plank','cable-crunch']
+  },
+  {
+    id:'cable-crunch', name:'Cable Crunch', aliases:['rope crunch','kneeling cable crunch'],
+    primary:['abs'], secondary:['obliques'],
+    equip:'cable', pattern:'Core', diff:'beginner', anim:'squat',
+    cues:['Kneel facing cable, rope behind head or at neck','Crunch HIPS toward elbows — don\'t pull with arms','Weight should be heavy enough to feel the abs loading'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['crunch','plank','leg-raise']
+  },
+  {
+    id:'russian-twist', name:'Russian Twist', aliases:['weighted russian twist','seated twist'],
+    primary:['obliques'], secondary:['abs'],
+    equip:'bodyweight', pattern:'Core', diff:'beginner', anim:'squat',
+    cues:['Lean back to ~45° — feel the abs engage','Rotate shoulders, not just the arms','Add a weight plate or medicine ball to progress'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['plank','crunch','cable-crunch']
+  },
+  {
+    id:'rear-delt-fly', name:'Rear Delt Fly', aliases:['reverse fly','bent-over fly','pec deck reverse','rear delt'],
+    primary:['rear_delt'], secondary:['upper_back','traps'],
+    equip:'dumbbell', pattern:'Isolation', diff:'beginner', anim:'hinge',
+    cues:['Hinge forward 45–90°; arms hang below chest','Lead with elbows — slight elbow bend fixed throughout','Raise to ear level, squeeze rear delts at the top'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['face-pull','bent-over-row','lateral-raise']
+  },
+  {
+    id:'trap-bar-deadlift', name:'Trap Bar Deadlift', aliases:['hex bar deadlift','trap bar','hex bar'],
+    primary:['glutes','quads','lower_back'], secondary:['hamstrings','traps'],
+    equip:'barbell', pattern:'Hinge', diff:'intermediate', anim:'hinge',
+    cues:['More upright torso than conventional — knees can track forward','Neutral handles reduce wrist/forearm strain vs straight bar','Drive floor away with quads AND hips simultaneously'],
+    hist:{last:'2 weeks ago',w:140,r:5,pr:{w:160,r:3,date:'2 months ago'},sessions:[130,135,140]},
+    nearPR:false, weekSets:1, fav:false, recent:false,
+    subs:['deadlift','sumo-deadlift','squat']
+  },
+  // ── Next 30 (51–80) ──────────────────────────
+  {
+    id:'one-arm-row', name:'One-Arm Dumbbell Row', aliases:['db row','single arm row','kroc row'],
+    primary:['lats','upper_back'], secondary:['biceps','rear_delt'],
+    equip:'dumbbell', pattern:'Pull · Horizontal', diff:'beginner', anim:'hinge',
+    cues:['Brace hand and knee on bench — keep torso parallel to floor','Pull elbow straight back past your hip','Full stretch at the bottom; pause and squeeze at top'],
+    hist:{last:'4 days ago',w:36,r:10,pr:{w:40,r:8,date:'3 weeks ago'},sessions:[30,33,36]},
+    nearPR:false, weekSets:4, fav:true, recent:true,
+    subs:['bent-over-row','seated-row','lat-pulldown']
+  },
+  {
+    id:'upright-row', name:'Upright Row', aliases:['barbell upright row','cable upright row'],
+    primary:['traps','front_delt'], secondary:['biceps','rear_delt'],
+    equip:'barbell', pattern:'Pull · Vertical', diff:'intermediate', anim:'hinge',
+    cues:['Grip shoulder-width (wider = less impingement risk)','Pull elbows high — above shoulder level','Avoid going too heavy; shoulder impingement risk at narrow grips'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['barbell-shrug','lateral-raise','face-pull']
+  },
+  {
+    id:'barbell-shrug', name:'Barbell Shrug', aliases:['shrug','bb shrug','trap shrug'],
+    primary:['traps'], secondary:['forearms'],
+    equip:'barbell', pattern:'Isolation', diff:'beginner', anim:'hinge',
+    cues:['Shrug straight up — don\'t roll your shoulders','Hold at the top for 1–2 seconds','Full drop at the bottom to stretch the traps'],
+    hist:{last:'1 week ago',w:100,r:12,pr:{w:120,r:10,date:'2 months ago'},sessions:[90,95,100]},
+    nearPR:false, weekSets:2, fav:false, recent:false,
+    subs:['dumbbell-shrug','upright-row','face-pull']
+  },
+  {
+    id:'dumbbell-shrug', name:'Dumbbell Shrug', aliases:['db shrug'],
+    primary:['traps'], secondary:['forearms'],
+    equip:'dumbbell', pattern:'Isolation', diff:'beginner', anim:'hinge',
+    cues:['Greater ROM vs barbell — dumbbells hang at sides','Shrug straight up; don\'t roll or rotate shoulders','Squeeze hard at the top for 1–2 seconds'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['barbell-shrug','upright-row','face-pull']
+  },
+  {
+    id:'decline-bench', name:'Decline Bench Press', aliases:['decline press','decline bb bench'],
+    primary:['chest'], secondary:['triceps','front_delt'],
+    equip:'barbell', pattern:'Push · Horizontal', diff:'intermediate', anim:'push-h',
+    cues:['Feet secured, head lower than hips','Lower to lower chest; elbows ~60° from body','Great for lower-chest development; less shoulder stress'],
+    hist:{last:'3 weeks ago',w:80,r:8,pr:{w:90,r:5,date:'3 months ago'},sessions:[72.5,77.5,80]},
+    nearPR:false, weekSets:1, fav:false, recent:false,
+    subs:['bench-press','cable-fly','push-up']
+  },
+  {
+    id:'pec-deck', name:'Pec Deck', aliases:['chest fly machine','butterfly machine','pec deck fly'],
+    primary:['chest'], secondary:['front_delt'],
+    equip:'machine', pattern:'Isolation', diff:'beginner', anim:'push-h',
+    cues:['Seat height: handles at chest level when arms are open','Keep slight elbow bend — fixed throughout','Squeeze at the midline; hold for 1 second'],
+    hist:{last:'4 days ago',w:50,r:12,pr:{w:60,r:10,date:'5 weeks ago'},sessions:[45,47.5,50]},
+    nearPR:false, weekSets:3, fav:false, recent:true,
+    subs:['cable-fly','dumbbell-bench','incline-fly']
+  },
+  {
+    id:'incline-fly', name:'Incline Dumbbell Fly', aliases:['incline db fly','incline chest fly'],
+    primary:['chest'], secondary:['front_delt'],
+    equip:'dumbbell', pattern:'Isolation', diff:'intermediate', anim:'push-h',
+    cues:['Set bench 30–45° incline','Arc the dumbbells wide — like hugging a barrel','Feel the stretch at the bottom; don\'t go past comfortable'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['cable-fly','pec-deck','incline-bench']
+  },
+  {
+    id:'machine-shoulder-press', name:'Machine Shoulder Press', aliases:['shoulder press machine','seated machine press'],
+    primary:['front_delt'], secondary:['triceps','traps'],
+    equip:'machine', pattern:'Push · Vertical', diff:'beginner', anim:'press-v',
+    cues:['Adjust seat so handles are at shoulder height','Press straight up to full lockout','Machine path removes stabilizer demand — good for isolation'],
+    hist:{last:'1 week ago',w:50,r:10,pr:{w:60,r:8,date:'2 months ago'},sessions:[45,47.5,50]},
+    nearPR:false, weekSets:2, fav:false, recent:false,
+    subs:['ohp','db-shoulder-press','arnold-press']
+  },
+  {
+    id:'cable-lateral-raise', name:'Cable Lateral Raise', aliases:['cable side raise','low cable lateral'],
+    primary:['front_delt'], secondary:['traps'],
+    equip:'cable', pattern:'Isolation', diff:'beginner', anim:'press-v',
+    cues:['Cable runs across body at hip height for constant tension','Lead with elbow — slight bend fixed throughout','Control the descent — cable keeps tension all the way down'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['lateral-raise','front-raise','db-shoulder-press']
+  },
+  {
+    id:'chin-up', name:'Chin-Up', aliases:['chinup','underhand pull-up','supinated pull-up'],
+    primary:['biceps','lats'], secondary:['upper_back','rear_delt'],
+    equip:'bodyweight', pattern:'Pull · Vertical', diff:'intermediate', anim:'pull-v',
+    cues:['Supinated grip (palms facing you) — more bicep involvement','Dead hang start; chin fully clears bar at top','Pull elbows down to hips; squeeze at peak'],
+    hist:{last:'5 days ago',w:0,r:8,pr:{w:5,r:6,date:'2 months ago'},sessions:[0,0,0]},
+    nearPR:false, weekSets:3, fav:false, recent:true,
+    subs:['pull-up','lat-pulldown','bicep-curl']
+  },
+  {
+    id:'concentration-curl', name:'Concentration Curl', aliases:['db concentration curl','seated curl'],
+    primary:['biceps'], secondary:['forearms'],
+    equip:'dumbbell', pattern:'Isolation', diff:'beginner', anim:'curl',
+    cues:['Elbow braced against inner thigh — locks out swinging','Rotate wrist outward at the top for peak contraction','Control the eccentric; slow and deliberate each rep'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['bicep-curl','preacher-curl','incline-curl']
+  },
+  {
+    id:'reverse-curl', name:'Reverse Curl', aliases:['overhand curl','pronated curl'],
+    primary:['forearms'], secondary:['biceps'],
+    equip:'barbell', pattern:'Isolation', diff:'beginner', anim:'curl',
+    cues:['Overhand grip (pronated) — targets brachioradialis and forearms','Keep wrists neutral — don\'t let them break back','Lighter weight than regular curl is normal'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['hammer-curl','wrist-curl','bicep-curl']
+  },
+  {
+    id:'rope-pushdown', name:'Rope Tricep Pushdown', aliases:['rope pushdown','cable rope extension'],
+    primary:['triceps'], secondary:['forearms'],
+    equip:'cable', pattern:'Isolation', diff:'beginner', anim:'push-dn',
+    cues:['Split rope apart at the bottom for full lateral head contraction','Keep elbows pinned at sides throughout','Lean slightly forward to keep tension on at full extension'],
+    hist:{last:'3 days ago',w:22,r:12,pr:{w:27,r:10,date:'4 weeks ago'},sessions:[18,20,22]},
+    nearPR:false, weekSets:3, fav:false, recent:true,
+    subs:['tricep-pushdown','skull-crusher','close-grip-bench']
+  },
+  {
+    id:'hack-squat', name:'Hack Squat', aliases:['machine hack squat','45 degree leg press'],
+    primary:['quads'], secondary:['glutes','hamstrings'],
+    equip:'machine', pattern:'Squat', diff:'intermediate', anim:'squat',
+    cues:['Feet mid-platform, shoulder-width','Deep as possible — machine guides the path','Don\'t lock out at the top — keep tension on quads'],
+    hist:{last:'1 week ago',w:120,r:8,pr:{w:140,r:6,date:'6 weeks ago'},sessions:[110,115,120]},
+    nearPR:false, weekSets:3, fav:false, recent:false,
+    subs:['squat','leg-press','front-squat']
+  },
+  {
+    id:'seated-calf-raise', name:'Seated Calf Raise', aliases:['seated calf','machine seated calf'],
+    primary:['calves'], secondary:[],
+    equip:'machine', pattern:'Isolation', diff:'beginner', anim:'squat',
+    cues:['Seated position isolates the soleus (deep calf muscle)','Full ROM — deep stretch at bottom, full rise at top','Slow eccentric (3–4 seconds down) for maximum stimulus'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['calf-raise','lunge','step-up']
+  },
+  {
+    id:'hip-abduction', name:'Hip Abduction Machine', aliases:['outer thigh machine','hip abduction','abductor'],
+    primary:['glutes'], secondary:[],
+    equip:'machine', pattern:'Isolation', diff:'beginner', anim:'squat',
+    cues:['Toes straight ahead or slightly in','Push pads apart as far as comfortable','Squeeze at full abduction; control the return'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['hip-thrust','glute-bridge','cable-kickback']
+  },
+  {
+    id:'hip-adduction', name:'Hip Adduction Machine', aliases:['inner thigh machine','hip adduction','adductor'],
+    primary:['glutes'], secondary:['hamstrings'],
+    equip:'machine', pattern:'Isolation', diff:'beginner', anim:'squat',
+    cues:['Squeeze pads together using inner thighs, not quads','Full ROM — let legs separate fully before squeezing back','Slow controlled tempo; avoid bouncing at either end'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['hip-abduction','lunge','squat']
+  },
+  {
+    id:'glute-bridge', name:'Glute Bridge', aliases:['bodyweight glute bridge','floor bridge','bw hip thrust'],
+    primary:['glutes'], secondary:['hamstrings','abs'],
+    equip:'bodyweight', pattern:'Hinge', diff:'beginner', anim:'hinge',
+    cues:['Feet flat, knees bent, heels close to glutes','Drive hips up until body is straight — squeeze glutes hard','Hold for 2 seconds at the top; don\'t hyperextend spine'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['hip-thrust','rdl','cable-kickback']
+  },
+  {
+    id:'cable-kickback', name:'Cable Glute Kickback', aliases:['cable kickback','glute kickback','donkey kick cable'],
+    primary:['glutes'], secondary:['hamstrings'],
+    equip:'cable', pattern:'Isolation', diff:'beginner', anim:'hinge',
+    cues:['Ankle cuff attached to low cable; lean on a support','Kick leg straight back — keep slight knee bend','Squeeze glute at full extension; slow controlled return'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['hip-thrust','glute-bridge','hip-abduction']
+  },
+  {
+    id:'single-leg-rdl', name:'Single-Leg RDL', aliases:['single leg romanian deadlift','sl rdl','pistol hinge'],
+    primary:['hamstrings','glutes'], secondary:['lower_back','abs'],
+    equip:'dumbbell', pattern:'Hinge', diff:'intermediate', anim:'hinge',
+    cues:['Hinge on one leg — keep a slight bend in the standing knee','Arms hang straight down; back stays flat','Feel hamstring stretch; stand leg hip stays level (no hip hike)'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['rdl','glute-bridge','hip-thrust']
+  },
+  {
+    id:'straight-arm-pulldown', name:'Straight-Arm Pulldown', aliases:['straight arm lat pulldown','cable pullover','pullover machine'],
+    primary:['lats'], secondary:['abs','triceps'],
+    equip:'cable', pattern:'Pull · Vertical', diff:'beginner', anim:'pull-v',
+    cues:['Arms stay straight — this is a shoulder extension, not a pull','Hinge forward slightly; pull bar down to thighs','Feel the lats stretch at the top; contract hard at the bottom'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['lat-pulldown','pull-up','seated-row']
+  },
+  {
+    id:'lat-pullover', name:'Dumbbell Pullover', aliases:['db pullover','lat pullover','chest pullover'],
+    primary:['lats'], secondary:['chest','abs','triceps'],
+    equip:'dumbbell', pattern:'Isolation', diff:'beginner', anim:'push-h',
+    cues:['Lie across bench; hold one dumbbell with both hands overhead','Lower behind head until you feel a deep lats/chest stretch','Pull back to over chest — keep slight elbow bend throughout'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['straight-arm-pulldown','lat-pulldown','cable-fly']
+  },
+  {
+    id:'ab-wheel', name:'Ab Wheel Rollout', aliases:['ab roller','rollout','wheel rollout'],
+    primary:['abs'], secondary:['lower_back','triceps','lats'],
+    equip:'bodyweight', pattern:'Core', diff:'intermediate', anim:'squat',
+    cues:['Start from knees until you can do standing rollouts','Roll out until body is almost parallel to floor','Pull back using abs — don\'t just use your arms'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['plank','dead-bug','cable-crunch']
+  },
+  {
+    id:'bicycle-crunch', name:'Bicycle Crunch', aliases:['bicycle','cycle crunch'],
+    primary:['obliques'], secondary:['abs'],
+    equip:'bodyweight', pattern:'Core', diff:'beginner', anim:'squat',
+    cues:['Rotate elbow to opposite knee — bring knee to chest, not head to knee','Extend the other leg low to the ground for full hip-flexor engagement','Slow and controlled — not a race; each rep should be deliberate'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['russian-twist','crunch','side-plank']
+  },
+  {
+    id:'side-plank', name:'Side Plank', aliases:['lateral plank','side plank hold'],
+    primary:['obliques'], secondary:['abs','glutes'],
+    equip:'bodyweight', pattern:'Core', diff:'beginner', anim:'squat',
+    cues:['Stack feet or stagger — elbow directly under shoulder','Keep hips high; body in a straight line','Progress to hip dips or reach-through for added difficulty'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['plank','bicycle-crunch','pallof-press']
+  },
+  {
+    id:'dead-bug', name:'Dead Bug', aliases:['deadbug'],
+    primary:['abs'], secondary:['lower_back','obliques'],
+    equip:'bodyweight', pattern:'Core', diff:'beginner', anim:'squat',
+    cues:['Lower back pressed flat to floor throughout — non-negotiable','Extend opposite arm and leg simultaneously; breathe out as you go','Move slowly — the challenge is stabilizing, not the movement itself'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['plank','ab-wheel','cable-crunch']
+  },
+  {
+    id:'mountain-climber', name:'Mountain Climber', aliases:['mountain climbers'],
+    primary:['abs'], secondary:['obliques','front_delt','quads'],
+    equip:'bodyweight', pattern:'Core', diff:'beginner', anim:'squat',
+    cues:['Start in a push-up position; keep hips level','Drive knees to chest alternately — fast or slow','Slow = strength/stability; fast = cardio conditioning'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['plank','bicycle-crunch','dead-bug']
+  },
+  {
+    id:'pallof-press', name:'Pallof Press', aliases:['cable anti-rotation','palloff press'],
+    primary:['abs'], secondary:['obliques','lats'],
+    equip:'cable', pattern:'Core', diff:'beginner', anim:'squat',
+    cues:['Stand sideways to cable; anchor at chest height','Press straight out from chest and hold for 2 seconds','The challenge is resisting rotation — don\'t let the cable pull you'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['plank','side-plank','dead-bug']
+  },
+  {
+    id:'reverse-fly-machine', name:'Reverse Pec Deck', aliases:['reverse fly machine','pec deck rear delt','rear delt machine'],
+    primary:['rear_delt'], secondary:['upper_back','traps'],
+    equip:'machine', pattern:'Isolation', diff:'beginner', anim:'hinge',
+    cues:['Set seat so handles are at shoulder height with arms forward','Open arms wide — rear delts do the work, not traps','Control the return; don\'t let the machine snap back'],
+    hist:null, nearPR:false, weekSets:0, fav:false, recent:false,
+    subs:['face-pull','rear-delt-fly','bent-over-row']
+  }
+];
+
+const EX_MAP = {};
+EX.forEach(e => { EX_MAP[e.id] = e; });
+
+// Weekly heatmap (sets per muscle this week)
+const HEAT = {
+  chest:8, front_delt:6, triceps:5, upper_back:4, lats:4,
+  rear_delt:3, biceps:3, hamstrings:3, quads:3, glutes:2,
+  lower_back:2, abs:2, obliques:1, forearms:1, traps:2, calves:0
+};
+
+// Zone → SVG element IDs
+const ZONE_ELS = {
+  chest:['z-chest'], front_delt:['z-fdelt-l','z-fdelt-r'],
+  biceps:['z-bicep-l','z-bicep-r'], forearms:['z-farm-l','z-farm-r'],
+  abs:['z-abs'], obliques:['z-obl-l','z-obl-r'],
+  quads:['z-quad-l','z-quad-r'], calves:['z-calf-fl','z-calf-fr','z-calf-bl','z-calf-br'],
+  traps:['z-traps'], upper_back:['z-uback'],
+  rear_delt:['z-rdelt-l','z-rdelt-r'], triceps:['z-tri-l','z-tri-r'],
+  lats:['z-lat-l','z-lat-r'], lower_back:['z-lback'],
+  glutes:['z-glute-l','z-glute-r'], hamstrings:['z-ham-l','z-ham-r']
+};
+
+// ── STICKMAN SVG TEMPLATES ──────────────────────────────────────
+function stickman(tpl) {
+  const S = '#7c5cff', T = 2.5, R = 'round';
+  const head = (cx,cy) => `<circle cx="${cx}" cy="${cy}" r="9" fill="none" stroke="${S}" stroke-width="2"/>`;
+  const line = (x1,y1,x2,y2,cls='',extra='') =>
+    `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${S}" stroke-width="${T}" stroke-linecap="${R}" class="${cls}" ${extra}/>`;
+
+  const lbl = (txt) => `<text x="50" y="113" text-anchor="middle" fill="#6b768c" font-size="9">${txt}</text>`;
+
+  const tpls = {
+    'push-h': `<svg viewBox="0 0 100 120" style="width:100%;height:100%">
+      ${head(50,18)}
+      <g class="anim-el" style="animation-name:push-h">
+        ${line(50,27,50,60)} ${line(50,38,26,50)} ${line(50,38,74,50)}
+        ${line(50,60,38,95)} ${line(50,60,62,95)}
+      </g>${lbl('Push horizontal')}</svg>`,
+
+    'hinge': `<svg viewBox="0 0 100 120" style="width:100%;height:100%">
+      ${head(50,14)}
+      <g class="anim-el" style="animation-name:hinge">
+        ${line(50,23,50,55)} ${line(50,34,27,44)} ${line(50,34,73,44)}
+        ${line(50,55,40,92)} ${line(50,55,60,92)}
+      </g>${lbl('Hinge')}</svg>`,
+
+    'squat': `<svg viewBox="0 0 100 120" style="width:100%;height:100%">
+      ${head(50,17)}
+      <g class="anim-el" style="animation-name:squat-b">
+        ${line(50,26,50,58)} ${line(50,36,25,48)} ${line(50,36,75,48)}
+        ${line(50,58,36,82)} ${line(50,58,64,82)}
+        ${line(36,82,38,102)} ${line(64,82,62,102)}
+      </g>${lbl('Squat')}</svg>`,
+
+    'press-v': `<svg viewBox="0 0 100 120" style="width:100%;height:100%">
+      ${head(50,24)}
+      ${line(50,33,50,64)} ${line(50,62,38,96)} ${line(50,62,62,96)}
+      <g class="anim-el" style="animation-name:press-v">
+        ${line(50,42,25,30)} ${line(50,42,75,30)}
+      </g>${lbl('Push vertical')}</svg>`,
+
+    'pull-v': `<svg viewBox="0 0 100 120" style="width:100%;height:100%">
+      <line x1="24" y1="7" x2="76" y2="7" stroke="#6b768c" stroke-width="2" stroke-linecap="${R}"/>
+      ${head(50,32)}
+      ${line(50,41,50,72)} ${line(50,72,38,105)} ${line(50,72,62,105)}
+      <g class="anim-el" style="animation-name:pull-v">
+        ${line(50,50,24,22)} ${line(50,50,76,22)}
+      </g>${lbl('Pull vertical')}</svg>`,
+
+    'row-h': `<svg viewBox="0 0 100 120" style="width:100%;height:100%">
+      ${head(30,32)}
+      ${line(30,41,32,72)} ${line(30,50,8,62)}
+      ${line(32,72,20,105)} ${line(32,72,44,105)}
+      <g class="anim-el" style="animation-name:row-h">
+        ${line(31,50,70,48)}
+      </g>${lbl('Pull horizontal')}</svg>`,
+
+    'curl': `<svg viewBox="0 0 100 120" style="width:100%;height:100%">
+      ${head(50,18)}
+      ${line(50,27,50,60)} ${line(50,60,38,95)} ${line(50,60,62,95)}
+      ${line(50,38,28,50)}
+      <g class="anim-el" style="animation-name:curl-a">
+        ${line(50,38,72,50)} ${line(72,50,65,35,'','stroke="#a1c4ff" stroke-width="2"')}
+      </g>${lbl('Curl')}</svg>`,
+
+    'push-dn': `<svg viewBox="0 0 100 120" style="width:100%;height:100%">
+      ${head(50,16)}
+      ${line(50,25,50,58)} ${line(50,58,38,93)} ${line(50,58,62,93)}
+      ${line(50,36,28,42)}
+      <g class="anim-el" style="animation-name:push-dn">
+        ${line(50,36,72,42)} ${line(72,42,70,70,'','stroke="#a1c4ff" stroke-width="2"')}
+      </g>${lbl('Tricep extension')}</svg>`
+  };
+  return tpls[tpl] || tpls['push-h'];
+}
+
+// ── MINI MUSCLE MAP (34×40 for list rows) ───────────────────────
+const MINI_PATHS = {
+  chest: 'M6,14 Q17,11 28,14 L28,22 Q17,25 6,22 Z',
+  front_delt: 'M1,14 Q4,18 2,23 Q7,24 10,23 Q11,18 9,14 Z M23,14 Q26,18 24,23 Q29,24 32,23 Q33,18 31,14 Z',
+  biceps: 'M0,20 Q-1,25 0,30 Q4,31 7,30 Q8,26 7,20 Z M27,20 Q26,25 27,30 Q31,31 34,30 Q35,26 34,20 Z',
+  forearms: 'M0,30 Q-1,35 0,39 Q4,40 7,39 Q8,35 7,30 Z M27,30 Q26,35 27,39 Q31,40 34,39 Q35,35 34,30 Z',
+  abs: 'M9,18 Q17,21 25,18 L25,28 Q17,31 9,28 Z',
+  obliques: 'M6,20 L9,18 L9,28 Q6,26 5,23 Z M28,20 L25,18 L25,28 Q28,26 29,23 Z',
+  quads: 'M8,26 Q13,23 17,26 L17,35 Q13,38 8,35 Z M17,26 Q21,23 26,26 L26,35 Q21,38 17,35 Z',
+  hamstrings: 'M8,26 Q13,23 17,26 L17,35 Q13,38 8,35 Z M17,26 Q21,23 26,26 L26,35 Q21,38 17,35 Z',
+  glutes: 'M8,24 Q13,20 17,24 L17,30 Q13,33 8,30 Z M17,24 Q21,20 26,24 L26,30 Q21,33 17,30 Z',
+  lower_back: 'M8,20 Q17,23 26,20 L26,26 Q17,29 8,26 Z',
+  upper_back: 'M6,14 Q17,11 28,14 L28,22 Q17,25 6,22 Z',
+  lats: 'M5,14 L8,22 L8,27 Q4,24 3,18 Z M29,14 L26,22 L26,27 Q30,24 31,18 Z',
+  traps: 'M7,10 Q17,7 27,10 L26,15 Q17,12 8,15 Z',
+  rear_delt: 'M1,14 Q4,18 2,23 Q7,24 10,23 Q11,18 9,14 Z M23,14 Q26,18 24,23 Q29,24 32,23 Q33,18 31,14 Z',
+  triceps: 'M0,20 Q-1,25 0,30 Q4,31 7,30 Q8,26 7,20 Z M27,20 Q26,25 27,30 Q31,31 34,30 Q35,26 34,20 Z',
+  calves: 'M8,31 Q11,29 15,31 L15,37 Q11,39 8,37 Z M19,31 Q22,29 26,31 L26,37 Q22,39 19,37 Z'
+};
+
+function miniMap(primary, secondary=[]) {
+  const sPaths = secondary.map(m => MINI_PATHS[m]||'').filter(Boolean)
+    .map(p=>`<path d="${p}" fill="rgba(35,213,171,.38)" stroke="#23d5ab" stroke-width="0.6"/>`).join('');
+  const pPaths = primary.map(m => MINI_PATHS[m]||'').filter(Boolean)
+    .map(p=>`<path d="${p}" fill="rgba(124,92,255,.72)" stroke="#7c5cff" stroke-width="0.8"/>`).join('');
+  return `<svg viewBox="0 0 34 40" style="width:34px;height:34px">
+    <ellipse cx="17" cy="5" rx="5" ry="5" fill="#252d3d" stroke="#353f55" stroke-width=".8"/>
+    <rect x="13" y="9" width="8" height="14" rx="2" fill="#252d3d" stroke="#353f55" stroke-width=".8"/>
+    <rect x="7" y="23" width="8" height="10" rx="2" fill="#252d3d" stroke="#353f55" stroke-width=".8"/>
+    <rect x="19" y="23" width="8" height="10" rx="2" fill="#252d3d" stroke="#353f55" stroke-width=".8"/>
+    ${sPaths}${pPaths}
+  </svg>`;
+}
+
+// ── DETAIL MUSCLE MAP (full body, 74px wide) ────────────────────
+const DETAIL_ZONES = {
+  chest:    {path:'M28,34 Q45,30 62,34 L62,56 Q45,60 28,56 Z', front:true},
+  front_delt:{path:'M22,33 Q15,37 15,50 Q22,54 28,50 Q28,37 22,33Z M68,33 Q75,37 75,50 Q68,54 62,50 Q62,37 68,33Z', front:true},
+  biceps:   {path:'M14,52 Q10,58 11,66 Q15,68 20,66 Q22,58 20,52 Z M76,52 Q80,58 79,66 Q75,68 70,66 Q68,58 70,52 Z', front:true},
+  forearms: {path:'M10,67 Q8,75 9,83 Q14,84 19,83 Q21,75 20,67 Z M80,67 Q82,75 81,83 Q76,84 71,83 Q69,75 70,67 Z', front:true},
+  abs:      {path:'M32,56 Q45,60 58,56 L58,82 Q45,86 32,82 Z', front:true},
+  quads:    {path:'M32,86 Q38,84 45,86 L45,126 Q38,130 32,126 Z M58,86 Q52,84 45,86 L45,126 Q52,130 58,126 Z', front:true},
+  calves:   {path:'M32,132 Q36,130 41,132 L41,162 Q36,165 32,162 Z M58,132 Q54,130 49,132 L49,162 Q54,165 58,162 Z', front:true},
+  upper_back:{path:'M28,42 Q45,38 62,42 L62,58 Q45,62 28,58 Z', front:false},
+  lats:     {path:'M26,44 L32,58 L32,76 Q27,72 24,62 Z M64,44 L58,58 L58,76 Q63,72 66,62 Z', front:false},
+  traps:    {path:'M31,33 Q45,28 59,33 L58,42 Q45,38 32,42 Z', front:false},
+  rear_delt:{path:'M22,34 Q15,40 15,52 Q22,56 28,52 Q28,40 22,34Z M68,34 Q75,40 75,52 Q68,56 62,52 Q62,40 68,34Z', front:false},
+  triceps:  {path:'M14,52 Q10,60 12,68 Q17,69 21,68 Q23,60 21,52 Z M76,52 Q80,60 78,68 Q73,69 69,68 Q67,60 69,52 Z', front:false},
+  lower_back:{path:'M32,68 Q45,72 58,68 L58,84 Q45,88 32,84 Z', front:false},
+  glutes:   {path:'M32,84 Q38,80 45,84 L45,100 Q38,104 32,100 Z M58,84 Q52,80 45,84 L45,100 Q52,104 58,100 Z', front:false},
+  hamstrings:{path:'M32,100 Q38,96 45,100 L45,130 Q38,133 32,130 Z M58,100 Q52,96 45,100 L45,130 Q52,133 58,130 Z', front:false},
+  obliques: {path:'M25,58 L32,56 L32,80 Q27,78 25,72 Z M65,58 L58,56 L58,80 Q63,78 65,72 Z', front:true}
+};
+
+function detailMuscleMap(primary, secondary=[]) {
+  // Show front view; muscle colouring regardless of front/back
+  const pSet = new Set(primary), sSet = new Set(secondary);
+  const PF = 'rgba(124,92,255,.72)', PS = '#7c5cff';
+  const SF = 'rgba(35,213,171,.35)', SS = '#23d5ab';
+  const BG = '#1a1f2e', BS = '#252d3d';
+
+  function zone(muscle, path) {
+    const f = pSet.has(muscle) ? PF : sSet.has(muscle) ? SF : BG;
+    const s = pSet.has(muscle) ? PS : sSet.has(muscle) ? SS : BS;
+    return `<path d="${path}" fill="${f}" stroke="${s}" stroke-width="1"/>`;
+  }
+
+  const rendered = Object.entries(DETAIL_ZONES).map(([m, {path}]) => zone(m, path)).join('');
+
+  return `<svg viewBox="0 0 90 200" style="width:70px;height:auto">
+    <ellipse cx="45" cy="16" rx="11" ry="13" fill="#1a1f2e" stroke="#252d3d" stroke-width="1"/>
+    <rect x="41" y="28" width="8" height="6" rx="2" fill="#1a1f2e" stroke="#252d3d" stroke-width="1"/>
+    ${rendered}
+    <ellipse cx="37" cy="129" rx="6" ry="5" fill="#141820" stroke="#252d3d" stroke-width="1"/>
+    <ellipse cx="53" cy="129" rx="6" ry="5" fill="#141820" stroke="#252d3d" stroke-width="1"/>
+    <rect x="5" y="172" width="7" height="5" rx="1" fill="${PF}" stroke="${PS}" stroke-width=".7"/>
+    <text x="15" y="178" fill="#6b768c" font-size="7">Primary</text>
+    <rect x="5" y="181" width="7" height="5" rx="1" fill="${SF}" stroke="${SS}" stroke-width=".7"/>
+    <text x="15" y="187" fill="#6b768c" font-size="7">Secondary</text>
+  </svg>`;
+}
+// ── END PHASE 2 ──
+
+// ══════════════════════════════════════════════
+// PHASE 3 — RENDER FUNCTIONS
+// ══════════════════════════════════════════════
+
+// ── Helpers ─────────────────────────────────
+function diffLabel(d) {
+  if (d === 'beginner')     return '<span class="diff-dot diff-b"></span>Beginner';
+  if (d === 'intermediate') return '<span class="diff-dot diff-i"></span>Inter';
+  return '<span class="diff-dot diff-a"></span>Advanced';
+}
+function cap(s) { return s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
+
+// ── List row ────────────────────────────────
+function renderRow(ex) {
+  const isAdded = ST.added[ex.id];
+  return `<div class="ex-row${ST.activeId===ex.id?' active':''}" onclick="openDetail('${ex.id}')">
+    ${miniMap(ex.primary, ex.secondary||[])}
+    <div class="ex-info">
+      <div class="ex-name">${ex.name}</div>
+      <div class="ex-meta">
+        <span>${ex.primary.map(cap).join(', ')}</span>
+        <span>·</span><span>${ex.equip}</span>
+      </div>
+    </div>
+    <div class="ex-badges">
+      ${ex.nearPR ? '<span class="badge badge-pr">🏅 Near PR</span>' : ''}
+      <span class="badge badge-add${isAdded?' added':''}"
+        onclick="event.stopPropagation();quickAdd('${ex.id}',this)">
+        ${isAdded ? '✓ Added' : '+ Add'}
+      </span>
+      <span class="badge badge-diff">${diffLabel(ex.diff)}</span>
+    </div>
+  </div>`;
+}
+
+// ── Full list render ────────────────────────
+function render() {
+  const list = getFiltered();
+  const panel = document.getElementById('listPanel');
+  if (!list.length) {
+    panel.innerHTML = `<div class="empty">No exercises found<br>
+      <span style="font-size:12px">Try a different filter or clear the body-map selection</span></div>`;
+    return;
+  }
+  const prList   = list.filter(e => e.nearPR);
+  const restList = list.filter(e => !e.nearPR);
+  let html = '';
+  if (prList.length && !ST.search) {
+    html += `<div class="section-hdr">🏅 Near PR — today could be the day</div>`;
+    html += prList.map(renderRow).join('');
+    if (restList.length) html += `<div class="section-hdr" style="margin-top:6px">All Exercises</div>`;
+  }
+  html += restList.map(renderRow).join('');
+  panel.innerHTML = html;
+}
+
+// ── Detail panel ────────────────────────────
+function openDetail(id) {
+  const ex = EX_MAP[id];
+  if (!ex) return;
+  ST.activeId = id;
+  render(); // highlight active row
+
+  const isAdded = ST.added[id];
+
+  // History block
+  let histHtml;
+  if (ex.hist) {
+    const h = ex.hist;
+    const isBW = id === 'pull-up' || id === 'plank';
+    const wLabel = isBW ? 'BW' : `${h.w} kg`;
+    const rLabel = id === 'plank' ? `${h.r}s hold` : `× ${h.r}`;
+    const prW = isBW ? 'BW' : `${h.pr.w} kg`;
+    histHtml = `<div class="hist-card">
+      <div class="card-label">Your History</div>
+      <div class="hist-rows">
+        <div class="hist-item">
+          <div class="val">${wLabel}</div>
+          <div class="lbl">${rLabel}</div>
+          <div class="lbl" style="font-size:9px">${h.last}</div>
+        </div>
+        <div class="hist-item">
+          <div class="val">${h.sessions.length}</div>
+          <div class="lbl">sessions</div>
+        </div>
+        <div class="hist-item">
+          <div class="val">${h.sessions[0] > 0 ? h.sessions[0]+' kg' : isBW?'BW':'—'}</div>
+          <div class="lbl">started at</div>
+        </div>
+      </div>
+      ${ex.nearPR ? `<div class="pr-row">🏅 PR: ${prW} × ${h.pr.r} — ${h.pr.date}
+        &nbsp;·&nbsp; You\'re close — go for it today</div>` : ''}
+    </div>`;
+  } else {
+    histHtml = `<div class="hist-card">
+      <div class="card-label">Your History</div>
+      <div class="no-hist">No history yet — will appear after your first set</div>
+    </div>`;
+  }
+
+  // Cues
+  const cuesHtml = `<div class="cues-card">
+    <div class="card-label">Coaching Cues</div>
+    ${ex.cues.map((c,i)=>`<div class="cue-row">
+      <span class="cue-num">${i+1}</span><span>${c}</span>
+    </div>`).join('')}
+  </div>`;
+
+  // Substitutes
+  const subsHtml = (ex.subs||[]).slice(0,3).map(sid => {
+    const s = EX_MAP[sid]; if (!s) return '';
+    return `<div class="sub-row" onclick="openDetail('${sid}')">
+      ${miniMap(s.primary, s.secondary||[])}
+      <div class="sub-info">
+        <div class="sub-name">${s.name}</div>
+        <div class="sub-why">Same muscle · ${s.equip}</div>
+      </div>
+    </div>`;
+  }).filter(Boolean).join('');
+
+  // Muscle legend
+  const legPri = ex.primary.map(cap).join(', ');
+  const legSec = (ex.secondary||[]).map(cap).join(', ');
+
+  document.getElementById('detailInner').innerHTML = `
+    <div class="detail-header">
+      <div>
+        <div class="detail-name">${ex.name}</div>
+        <div class="detail-sub">${ex.pattern} · ${ex.equip} · ${ex.diff}</div>
+      </div>
+      <button class="close-btn" onclick="closeDetail()">✕</button>
+    </div>
+
+    <div class="anim-muscle-row">
+      ${(() => {
+        const g = FORM_GUIDE[id];
+        if (g && g.images.length) {
+          return `<div class="anim-box" onclick="openFormGuide('${id}')">
+            <img class="form-prev-img" src="${g.images[0].url}" alt="${ex.name}" loading="lazy"
+                 onerror="this.style.display='none';this.nextSibling.style.display='flex'">
+            <div class="form-prev-placeholder" style="display:none">💪<br><small>Tap for guide</small></div>
+            <div class="form-prev-hint">See Form Guide →</div>
+          </div>`;
+        }
+        if (g) {
+          return `<div class="anim-box" onclick="openFormGuide('${id}')">
+            <div class="form-prev-placeholder">💪<br><small>Cues &amp; Muscles</small></div>
+            <div class="form-prev-hint">See Form Guide →</div>
+          </div>`;
+        }
+        return `<div class="anim-box no-guide">${stickman(ex.anim)}</div>`;
+      })()}
+      <div class="muscle-box">${detailMuscleMap(ex.primary, ex.secondary||[])}</div>
+    </div>
+
+    <div class="muscle-legend">
+      <div class="ml-item">
+        <span class="ml-dot" style="background:var(--a1)"></span>
+        <span>${legPri}</span>
+      </div>
+      ${legSec ? `<div class="ml-item">
+        <span class="ml-dot" style="background:var(--a2)"></span>
+        <span>${legSec}</span>
+      </div>` : ''}
+    </div>
+
+    ${histHtml}
+    ${cuesHtml}
+
+    ${subsHtml ? `<div class="subs-label">Similar Exercises</div>
+    <div class="subs-list">${subsHtml}</div>` : ''}
+
+    ${FORM_GUIDE[id]
+      ? `<button class="form-btn" onclick="openFormGuide('${id}')">
+           ▶ See Correct Form
+           <span class="form-btn-badge">Form Guide</span>
+         </button>`
+      : `<button class="form-btn unavailable">
+           ▶ See Correct Form
+           <span class="form-btn-badge">Coming Soon</span>
+         </button>`
+    }
+
+    <button class="add-btn${isAdded?' added':''}" id="mainAddBtn"
+      onclick="quickAdd('${id}', this)">
+      ${isAdded ? '✓ Added to session' : '+ Add to Today\'s Session'}
+    </button>
+  `;
+
+  document.getElementById('detail').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeDetail() {
+  document.getElementById('detail').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  ST.activeId = null;
+  render();
+}
+
+// ── Form Guide — all 20 exercises ────────────
+const W = 'https://wger.de/media/exercise-images/';
+const FORM_GUIDE = {
+  'bench-press': {
+    images: [
+      { url:W+'192/Bench-press-1.png', caption:'Bottom — Bar at lower chest, elbows ~75°, shoulder blades pinched' },
+      { url:W+'192/Bench-press-2.png', caption:'Lockout — Arms extended, wrists stacked, bar over lower chest' },
+    ],
+    cues:['Pinch and depress shoulder blades into bench','Keep feet flat — drive legs into the floor','Touch lower chest, not sternum or neck','Slight arch in lower back is normal and safe'],
+    primary:['Chest','Triceps'], secondary:['Front Delts','Core','Lats']
+  },
+  'incline-bench': {
+    images: [
+      { url:W+'41/Incline-bench-press-1.png', caption:'Setup — 30–45° incline, bar at upper chest, elbows ~60°' },
+      { url:W+'41/Incline-bench-press-2.png', caption:'Lockout — Full extension, squeeze upper pec at top' },
+    ],
+    cues:['Use 30–45° incline — higher angles shift to shoulders','Lower to upper chest, not collarbone','Elbows at ~60° from torso, not flared wide','Squeeze the pecs at the top — don\'t just bounce'],
+    primary:['Upper Chest','Front Delts'], secondary:['Triceps','Core']
+  },
+  'dumbbell-bench': {
+    images: [
+      { url:W+'97/Dumbbell-bench-press-1.png', caption:'Bottom — Deeper stretch than barbell, neutral/45° grip option' },
+      { url:W+'97/Dumbbell-bench-press-2.png', caption:'Lockout — Dumbbells converge slightly at the top' },
+    ],
+    cues:['Go deeper than barbell — extra ROM = extra growth','Control the eccentric: 3 seconds down','Neutral grip reduces shoulder stress','Keep wrists stacked — no floppy wrists'],
+    primary:['Chest','Triceps'], secondary:['Front Delts','Core']
+  },
+  'cable-fly': {
+    images: [
+      { url:W+'71/Cable-crossover-1.png', caption:'Start — Arms wide, slight elbow bend, chest fully open and stretched' },
+      { url:W+'71/Cable-crossover-2.png', caption:'Peak — Hands meet at center, squeeze pecs for 1 second' },
+    ],
+    cues:['Keep a fixed slight elbow bend throughout','Squeeze the chest hard at the midline','Set cable height at chest level for flat fly','Think "hugging a tree", not doing a row'],
+    primary:['Chest'], secondary:['Front Delts','Biceps']
+  },
+  'push-up': {
+    images:[],
+    cues:['Body in a rigid plank — no hip sag or piking','Hands just outside shoulders, fingers forward','Lower chest nearly touches floor at bottom','Elbows track back at ~45°, not flared wide'],
+    primary:['Chest','Triceps'], secondary:['Front Delts','Core','Serratus']
+  },
+  'rdl': {
+    images: [
+      { url:W+'116/Good-mornings-1.png', caption:'Setup — Hinge at hips, bar close to body, back flat, slight knee bend' },
+      { url:W+'116/Good-mornings-2.png', caption:'Stretch — Feel hamstrings load; stop before lower back rounds' },
+    ],
+    cues:['Hinge at hips — NOT a squat movement','Bar stays in contact with legs the whole way down','Feel the hamstring stretch; stop there — don\'t go lower','Squeeze glutes to drive hips through on the way up'],
+    primary:['Hamstrings','Glutes'], secondary:['Lower Back','Lats','Core']
+  },
+  'deadlift': {
+    images: [
+      { url:W+'161/Dead-lifts-1.png', caption:'Setup — Bar over mid-foot, hips hinged back, neutral spine, lats engaged' },
+      { url:W+'161/Dead-lifts-2.png', caption:'Lockout — Hips fully extended, glutes squeezed, shoulders back' },
+    ],
+    cues:['Push the floor away — don\'t think "pull"','Bar stays in contact with body all the way up','Maintain neutral spine from setup to lockout','Squeeze glutes hard at the top; don\'t hyperextend'],
+    primary:['Hamstrings','Glutes','Lower Back'], secondary:['Traps','Core','Lats']
+  },
+  'squat': {
+    images: [
+      { url:W+'191/Front-squat-1-857x1024.png', caption:'Setup — Feet shoulder-width, toes out, bar on upper back, brace core' },
+      { url:W+'191/Front-squat-2-857x1024.png', caption:'Bottom — Thighs at or below parallel, knees track toes, chest tall' },
+    ],
+    cues:['Big breath and brace core before each rep','Push knees outward — track over little toe','Keep chest up; don\'t let torso collapse forward','Drive hips up out of the hole to finish'],
+    primary:['Quads','Glutes'], secondary:['Hamstrings','Core','Adductors']
+  },
+  'goblet-squat': {
+    images: [
+      { url:W+'191/Front-squat-1-857x1024.png', caption:'Setup — Weight at chest height, feet shoulder-width, elbows inside knees' },
+      { url:W+'191/Front-squat-2-857x1024.png', caption:'Bottom — Elbows push knees out, sit tall, aim for full depth' },
+    ],
+    cues:['Hold weight close to chest — don\'t let it drift forward','Use elbows to push knees out at the bottom','Stay upright — weight in front naturally teaches this','Great warm-up drill for squat depth and posture'],
+    primary:['Quads','Glutes'], secondary:['Core','Adductors','Upper Back']
+  },
+  'leg-press': {
+    images:[],
+    cues:['Feet hip-width — low placement targets quads; high targets glutes','Never lock out knees fully at the top','Lower only until hips start to tuck — stop there','Press through the full foot, not just the toes'],
+    primary:['Quads','Glutes'], secondary:['Hamstrings','Calves']
+  },
+  'ohp': {
+    images: [
+      { url:W+'119/seated-barbell-shoulder-press-large-1.png', caption:'Start — Bar at upper chest / clavicle, elbows slightly forward' },
+      { url:W+'119/seated-barbell-shoulder-press-large-2.png', caption:'Lockout — Arms fully extended, bar stacked over ears' },
+    ],
+    cues:['Move head back as bar passes face, then forward at top','Squeeze glutes and brace core for spinal stability','Elbows slightly in front — not flared wide','Full lockout every rep; don\'t stop short'],
+    primary:['Shoulders','Triceps'], secondary:['Upper Traps','Core','Serratus']
+  },
+  'lateral-raise': {
+    images: [
+      { url:W+'148/lateral-dumbbell-raises-large-1.png', caption:'Start — Slight forward lean, dumbbells at sides, slight elbow bend' },
+      { url:W+'148/lateral-dumbbell-raises-large-2.png', caption:'Peak — Arms parallel to floor, pinky side slightly higher' },
+    ],
+    cues:['Slight forward lean (10–15°) to target the lateral head','Lead with elbows, not wrists','Pinky-side slightly higher at the top ("pouring water")','Lower slowly — 3 seconds; don\'t swing for momentum'],
+    primary:['Side Delts'], secondary:['Front Delts','Traps']
+  },
+  'lat-pulldown': {
+    images: [
+      { url:W+'181/Chin-ups-1.png', caption:'Start — Arms fully extended, shoulder blades elevated, lats stretched' },
+      { url:W+'181/Chin-ups-2.png', caption:'Bottom — Bar at upper chest, elbows driven down and back' },
+    ],
+    cues:['Slight lean back — pull bar toward upper chest','Drive elbows down into your back pockets','Full stretch at the top every rep; don\'t cut the ROM','Control the negative — 2–3 seconds on the way up'],
+    primary:['Lats','Upper Back'], secondary:['Biceps','Rear Delts','Core']
+  },
+  'pull-up': {
+    images: [
+      { url:W+'181/Chin-ups-1.png', caption:'Hang — Full dead hang, scapulae elevated, lats fully stretched' },
+      { url:W+'181/Chin-ups-2.png', caption:'Top — Chin clears bar, chest tall, elbows fully pulled down' },
+    ],
+    cues:['Start from a full dead hang every single rep','Pull elbows down to your hips, not just "pull up"','Squeeze shoulder blades together at the top','Slow controlled reps build real strength — avoid kipping'],
+    primary:['Lats','Biceps'], secondary:['Rear Delts','Core','Upper Back']
+  },
+  'bent-over-row': {
+    images: [
+      { url:W+'110/Reverse-grip-bent-over-rows-1.png', caption:'Setup — Hinge ~45°, back flat, bar in hands, eyes neutral' },
+      { url:W+'110/Reverse-grip-bent-over-rows-2.png', caption:'Row — Bar to lower chest/abdomen, elbows back, upper back squeezed' },
+    ],
+    cues:['Hinge torso to 45° — not an upright "standing" row','Drive elbows back past your torso, not up','Bar touches lower chest / upper abdomen (not ribcage)','Hold the squeeze for 1 second at the top'],
+    primary:['Upper Back','Lats'], secondary:['Biceps','Rear Delts','Core']
+  },
+  'seated-row': {
+    images: [
+      { url:W+'143/Cable-seated-rows-1.png', caption:'Start — Arms extended, sit tall, shoulder blades fully protracted' },
+      { url:W+'143/Cable-seated-rows-2.png', caption:'Peak — Handle at lower abs, elbows back, scapulae pinched together' },
+    ],
+    cues:['Sit upright — don\'t lean back to use momentum','Pull handle to lower abs, not up to your chest','Squeeze shoulder blades at full end range','Control the stretch — let scapulae protract fully on return'],
+    primary:['Upper Back','Lats'], secondary:['Biceps','Rear Delts','Core']
+  },
+  'face-pull': {
+    images: [
+      { url:W+'109/Barbell-rear-delt-row-1.png', caption:'Start — Arms extended toward cable, shoulders relaxed forward' },
+      { url:W+'109/Barbell-rear-delt-row-2.png', caption:'Peak — Hands at ears, elbows high and wide, rear delts squeezed' },
+    ],
+    cues:['Set cable at head height or slightly above','Pull to face level — elbows high and flared wide','Externally rotate at the top: show your armpits','Slow tempo — this is a corrective / shoulder-health move'],
+    primary:['Rear Delts','Traps'], secondary:['Rotator Cuff','Upper Back']
+  },
+  'bicep-curl': {
+    images: [
+      { url:W+'129/Standing-biceps-curl-1.png', caption:'Bottom — Arms fully extended, supinated grip, elbows pinned at sides' },
+      { url:W+'129/Standing-biceps-curl-2.png', caption:'Top — Bar at shoulder height, peak contraction, elbows still' },
+    ],
+    cues:['Keep elbows pinned at your sides — don\'t swing','Supinate fully at the top to maximize bicep activation','Full extension at the bottom — don\'t cut the ROM','Slow eccentric (3s down) builds more strength and size'],
+    primary:['Biceps'], secondary:['Forearms','Brachialis']
+  },
+  'tricep-pushdown': {
+    images: [
+      { url:W+'84/Lying-close-grip-triceps-press-to-chin-1.png', caption:'Start — Elbows pinned at sides, forearms at 90°, slight forward lean' },
+      { url:W+'84/Lying-close-grip-triceps-press-to-chin-2.png', caption:'Lockout — Arms fully extended, squeeze triceps, elbows still' },
+    ],
+    cues:['Lean slightly forward — keeps tension on at the bottom','Keep elbows pinned tight to your sides throughout','Full extension at the bottom — squeeze hard for 1 second','Control the return: 2–3 seconds on the way up'],
+    primary:['Triceps'], secondary:['Forearms']
+  },
+  'plank': {
+    images:[],
+    cues:['Forearms on floor, elbows directly under shoulders','Body in a rigid straight line — no hip sag or piking','Squeeze glutes, quads, and abs simultaneously','Look at the floor — neutral neck, not craning up or down'],
+    primary:['Core','Abs'], secondary:['Glutes','Shoulders','Lower Back']
+  },
+  // ── Next 30 ──────────────────────────────────
+  'hip-thrust': {
+    images:[],
+    cues:['Upper back on bench edge, bar padded over hip crease','Feet flat, knees at 90° at the top of the movement','Drive hips up until body is a straight line — squeeze glutes hard','Don\'t hyperextend the spine at the top; ribs stay down'],
+    primary:['Glutes'], secondary:['Hamstrings','Core']
+  },
+  'bulgarian-split-squat': {
+    images:[],
+    cues:['Rear foot elevated on bench; front foot far enough forward','Shin stays near vertical as you lower','Lower until back knee nearly grazes the floor','Drive through the front heel to stand'],
+    primary:['Quads','Glutes'], secondary:['Hamstrings','Core']
+  },
+  'front-squat': {
+    images:[
+      {url:W+'191/Front-squat-1-857x1024.png', caption:'Rack position — elbows high, bar resting on front delts, upright torso'},
+      {url:W+'191/Front-squat-2-857x1024.png', caption:'Bottom — Thighs parallel, knees tracking toes, chest stays tall'},
+    ],
+    cues:['Keep elbows high and forward throughout — this is the hardest cue','More upright torso than back squat — loads quads more','Wrist mobility needed: work on clean grip or cross-arm grip','Depth and technique over load — don\'t ego-lift front squats'],
+    primary:['Quads'], secondary:['Glutes','Upper Back','Core']
+  },
+  'sumo-deadlift': {
+    images:[
+      {url:W+'161/Dead-lifts-1.png', caption:'Setup — Wide stance, toes 30–45° out, hips closer to bar than conventional'},
+      {url:W+'161/Dead-lifts-2.png', caption:'Lockout — Hips fully extended, push knees out, shoulders over bar'},
+    ],
+    cues:['Wide stance, toes flared 30–45°; hips close to the bar','Push knees outward aggressively as you pull','More upright torso than conventional; quads do more work','Bar path is straight up — don\'t let it drift forward'],
+    primary:['Glutes','Quads'], secondary:['Hamstrings','Lower Back','Traps']
+  },
+  'db-shoulder-press': {
+    images:[
+      {url:W+'123/dumbbell-shoulder-press-large-1.png', caption:'Start — Dumbbells at ear level, elbows at 90°, wrists neutral'},
+      {url:W+'123/dumbbell-shoulder-press-large-2.png', caption:'Lockout — Arms extended overhead, slight arc inward at top'},
+    ],
+    cues:['Start at ear level, elbows at 90° — not too far back','Press straight up with a slight arc inward at the top','Greater ROM and instability vs barbell = more stabilizer work','Control the descent — don\'t drop the dumbbells'],
+    primary:['Shoulders','Triceps'], secondary:['Upper Traps','Core']
+  },
+  'arnold-press': {
+    images:[
+      {url:W+'123/dumbbell-shoulder-press-large-1.png', caption:'Start — Palms facing you, elbows tucked close to body'},
+      {url:W+'123/dumbbell-shoulder-press-large-2.png', caption:'Lockout — Palms rotated out, full extension overhead'},
+    ],
+    cues:['Start with palms facing you (like end of a curl)','Rotate palms outward as you press up','Hits all three delt heads in one movement','Keep the rotation smooth and controlled — not jerky'],
+    primary:['Shoulders'], secondary:['Rear Delts','Triceps','Traps']
+  },
+  'front-raise': {
+    images:[],
+    cues:['Raise to just above shoulder height — no higher','Slight elbow bend fixed throughout; not a straight-arm move','Control the descent — 3 seconds down, 1 second up','Use lighter weight than you think; front delts are small'],
+    primary:['Front Delts'], secondary:['Traps','Core']
+  },
+  'chest-dip': {
+    images:[
+      {url:W+'83/Bench-dips-1.png', caption:'Top — Arms extended, slight forward lean for chest emphasis'},
+      {url:W+'83/Bench-dips-2.png', caption:'Bottom — Chest below hand level, deep pec stretch'},
+    ],
+    cues:['Lean slightly forward to bias chest; stay upright for triceps','Lower until shoulders are below elbow level','Don\'t lock out fully at top — keep tension on chest','Add weight (dip belt) to progress beyond bodyweight'],
+    primary:['Chest','Triceps'], secondary:['Front Delts']
+  },
+  'close-grip-bench': {
+    images:[
+      {url:W+'61/Close-grip-bench-press-1.png', caption:'Bottom — Hands shoulder-width, elbows tucked, bar at lower chest'},
+      {url:W+'61/Close-grip-bench-press-2.png', caption:'Lockout — Full extension, triceps fully contracted'},
+    ],
+    cues:['Hands shoulder-width — not super narrow (wrist strain)','Keep elbows tucked tight to body throughout','Full ROM: touch lower chest and press to lockout','Great for triceps mass AND a stronger bench press'],
+    primary:['Triceps'], secondary:['Chest','Front Delts']
+  },
+  'skull-crusher': {
+    images:[
+      {url:W+'84/Lying-close-grip-triceps-press-to-chin-1.png', caption:'Top — Arms extended, upper arms perpendicular to floor'},
+      {url:W+'84/Lying-close-grip-triceps-press-to-chin-2.png', caption:'Bottom — Bar lowered to forehead/behind head, max tricep stretch'},
+    ],
+    cues:['Keep upper arms perpendicular to floor — elbows don\'t flare','Lower bar to forehead or slightly behind for more stretch','Extend to full lockout — squeeze at the top','EZ bar reduces wrist strain vs straight bar'],
+    primary:['Triceps'], secondary:[]
+  },
+  'overhead-tricep': {
+    images:[],
+    cues:['Hold dumbbell overhead with both hands, elbows close to head','Lower until forearms are parallel to floor — max long-head stretch','Press to full lockout; the long head gets most work here','Keep core braced — don\'t hyperextend the spine'],
+    primary:['Triceps'], secondary:[]
+  },
+  'tricep-kickback': {
+    images:[],
+    cues:['Hinge forward until torso is parallel to floor','Upper arm stays pinned against your body — elbow doesn\'t move','Extend to full lockout and squeeze for 1 second','Use lighter weight and strict form — no swinging'],
+    primary:['Triceps'], secondary:[]
+  },
+  'hammer-curl': {
+    images:[
+      {url:W+'86/Bicep-hammer-curl-1.png', caption:'Bottom — Neutral grip, arms extended, elbows at sides'},
+      {url:W+'86/Bicep-hammer-curl-2.png', caption:'Top — Forearm curled up, neutral grip maintained throughout'},
+    ],
+    cues:['Neutral grip (palms facing each other) throughout the full movement','Elbow pinned — only the forearm moves','Hits brachialis and brachioradialis harder than supinated curl','Pairs well with standard curl to hit all elbow flexors'],
+    primary:['Biceps'], secondary:['Forearms']
+  },
+  'ez-bar-curl': {
+    images:[
+      {url:W+'129/Standing-biceps-curl-1.png', caption:'Bottom — Semi-supinated grip, arms fully extended, elbows at sides'},
+      {url:W+'129/Standing-biceps-curl-2.png', caption:'Top — Bar at shoulder height, peak contraction, elbows still'},
+    ],
+    cues:['Semi-supinated grip reduces wrist and elbow strain vs straight bar','Keep elbows at sides — don\'t swing for momentum','Squeeze hard at the top before lowering','Control the eccentric — 3 seconds down'],
+    primary:['Biceps'], secondary:['Forearms']
+  },
+  'incline-curl': {
+    images:[],
+    cues:['Set bench to 60° incline — arms hang behind your body','Maximum long-head stretch at the bottom of every rep','Curl slowly and deliberately — this is a stretch-focused variation','Don\'t swing; let the stretch do the work'],
+    primary:['Biceps'], secondary:['Forearms']
+  },
+  'preacher-curl': {
+    images:[
+      {url:W+'193/Preacher-curl-3-1.png', caption:'Bottom — Full extension on the preacher pad; no cheating possible'},
+    ],
+    cues:['Arms rest on pad — eliminates swinging and cheating','Lower to full extension on every rep — full ROM is key','Don\'t hyperextend at the bottom; stop just before lockout','Great for building peak bicep because it isolates the muscle'],
+    primary:['Biceps'], secondary:['Forearms']
+  },
+  'cable-curl': {
+    images:[
+      {url:W+'138/Hammer-curls-with-rope-1.png', caption:'Bottom — Low cable, arms extended, constant tension maintained'},
+      {url:W+'138/Hammer-curls-with-rope-2.png', caption:'Top — Full curl, peak contraction, elbows at sides'},
+    ],
+    cues:['Cable provides constant tension unlike dumbbells','Elbow pinned at side — strict curl, no swinging','Supinate at the top (with a straight bar) for peak contraction','Great finisher after heavier barbell curls'],
+    primary:['Biceps'], secondary:['Forearms']
+  },
+  'leg-curl': {
+    images:[
+      {url:W+'154/lying-leg-curl-machine-large-1.png', caption:'Start — Legs extended, hamstrings stretched, pad just above heels'},
+      {url:W+'154/lying-leg-curl-machine-large-2.png', caption:'Peak — Heel to glute, hamstrings fully contracted'},
+    ],
+    cues:['Full extension at the start to stretch the hamstrings','Curl heel toward glutes; pause at peak contraction','Avoid lifting hips off the pad — keep hips pressed down','Slow the eccentric: 3 seconds back to the start'],
+    primary:['Hamstrings'], secondary:['Glutes']
+  },
+  'leg-extension': {
+    images:[],
+    cues:['Full extension at the top — squeeze quads hard for 1 second','Control the descent — don\'t let the weight slam down','Keep back flat against the pad throughout the movement','Best used as a finisher; don\'t lead with this exercise'],
+    primary:['Quads'], secondary:[]
+  },
+  'calf-raise': {
+    images:[],
+    cues:['Full ROM — deep stretch at the bottom, full rise at top','Pause and squeeze at the top; calves need time under tension','Slow eccentric (3–4 seconds down) — calves respond to volume','Straight leg = gastrocnemius; bent knee = soleus'],
+    primary:['Calves'], secondary:[]
+  },
+  'good-morning': {
+    images:[
+      {url:W+'116/Good-mornings-1.png', caption:'Start — Bar on upper back, standing tall, soft knee bend'},
+      {url:W+'116/Good-mornings-2.png', caption:'Hinge — Torso approaches parallel, hamstrings fully loaded'},
+    ],
+    cues:['Hinge at hips until torso is ~parallel to floor','Feel the hamstring stretch — it limits your depth','Keep back straight and neutral throughout','Use light weight until you nail the hip-hinge pattern'],
+    primary:['Hamstrings','Lower Back'], secondary:['Glutes','Core']
+  },
+  'hyperextension': {
+    images:[
+      {url:W+'128/Hyperextensions-1.png', caption:'Bottom — Torso lowered, hamstrings and lower back fully stretched'},
+      {url:W+'128/Hyperextensions-2.png', caption:'Top — Body in a straight line; don\'t hyperextend past neutral'},
+    ],
+    cues:['Hinge at hips — don\'t round the lower back','Rise until body is in a straight line — not past neutral','Hold a weight plate at your chest to progress','Slow the descent: 3 seconds down for more time under tension'],
+    primary:['Lower Back'], secondary:['Glutes','Hamstrings']
+  },
+  'lunge': {
+    images:[
+      {url:W+'113/Walking-lunges-1.png', caption:'Setup — Standing tall, step forward with a long stride'},
+      {url:W+'113/Walking-lunges-2.png', caption:'Bottom — Front shin vertical, back knee near floor, torso upright'},
+    ],
+    cues:['Step far enough forward — front shin stays near vertical','Lower back knee toward floor without touching it','Keep torso upright; don\'t let front knee cave inward','Alternate legs for walking lunges or repeat same leg for stationary'],
+    primary:['Quads','Glutes'], secondary:['Hamstrings','Calves']
+  },
+  'step-up': {
+    images:[],
+    cues:['Use a box at roughly knee height for optimal glute activation','Drive through the heel of the elevated foot — not the toes','Don\'t push off the floor with the trailing foot — load the working leg','Pause at the top: stand tall, squeeze glute'],
+    primary:['Quads','Glutes'], secondary:['Hamstrings']
+  },
+  'crunch': {
+    images:[
+      {url:W+'91/Crunches-1.png', caption:'Start — Feet flat, knees bent, hands lightly behind head'},
+      {url:W+'91/Crunches-2.png', caption:'Peak — Shoulder blades off floor, chin off chest, exhale fully'},
+    ],
+    cues:['Curl the spine — don\'t just lift your head and neck','Only shoulder blades leave the floor — not a full sit-up','Exhale fully as you crunch; inhale on the way down','Focus on the contraction, not the range of motion'],
+    primary:['Abs'], secondary:['Obliques']
+  },
+  'leg-raise': {
+    images:[
+      {url:W+'125/Leg-raises-1.png', caption:'Start — Dead hang, body straight, no swinging'},
+      {url:W+'125/Leg-raises-2.png', caption:'Peak — Legs at 90° (or toes to bar for advanced), core braced'},
+    ],
+    cues:['Start from a dead hang — no momentum or kipping','Raise legs to at least 90°; toes to bar for advanced','Lower slowly — resist gravity for more time under tension','Keep legs straight or slightly bent at the knee'],
+    primary:['Abs'], secondary:['Obliques']
+  },
+  'cable-crunch': {
+    images:[
+      {url:W+'56/Decline-crunch-1.png', caption:'Setup — Kneeling, rope behind head, hips stay fixed'},
+      {url:W+'56/Decline-crunch-2.png', caption:'Peak — Crunch hips toward elbows; abs fully contracted'},
+    ],
+    cues:['Kneel facing cable, rope at neck or held at ears','Crunch HIPS toward elbows — don\'t just pull with your arms','Hips stay fixed; only the spine flexes','Load heavily — abs respond well to weighted resistance'],
+    primary:['Abs'], secondary:['Obliques']
+  },
+  'russian-twist': {
+    images:[
+      {url:W+'176/Cross-body-crunch-1.png', caption:'Setup — Lean back to ~45°, core engaged, feet off floor for harder version'},
+      {url:W+'176/Cross-body-crunch-2.png', caption:'Twist — Rotate shoulders fully side to side; don\'t just move arms'},
+    ],
+    cues:['Lean back to ~45° — feel the abs engage immediately','Rotate SHOULDERS, not just the arms','Add a weight plate or medicine ball to progress','Slow and controlled — momentum defeats the purpose'],
+    primary:['Obliques'], secondary:['Abs']
+  },
+  'rear-delt-fly': {
+    images:[],
+    cues:['Hinge forward 45–90°; arms hang below chest','Lead with elbows — slight fixed elbow bend throughout','Raise to ear level, squeeze rear delts at the top','Use light weight and strict form — rear delts are small'],
+    primary:['Rear Delts'], secondary:['Upper Back','Traps']
+  },
+  'trap-bar-deadlift': {
+    images:[
+      {url:W+'161/Dead-lifts-1.png', caption:'Setup — Stand inside hex bar, handles at sides, more upright than conventional'},
+      {url:W+'161/Dead-lifts-2.png', caption:'Lockout — Hips extended, shoulders back, neutral spine maintained'},
+    ],
+    cues:['More upright torso than conventional — knees can track forward','Neutral grip handles reduce wrist and forearm strain','Drive floor away with both quads AND hips simultaneously','Often allows heavier loads than conventional for beginners'],
+    primary:['Glutes','Quads','Lower Back'], secondary:['Hamstrings','Traps']
+  },
+  // ── Exercises 51–80 ──────────────────────────
+  'one-arm-row': {
+    images:[
+      {url:W+'106/T-bar-row-1.png', caption:'Setup — Brace hand and knee; torso parallel to floor'},
+      {url:W+'106/T-bar-row-2.png', caption:'Pull — Elbow drives straight back past hip; full squeeze at top'},
+    ],
+    cues:['Brace hand and knee on bench — keep torso parallel to floor','Pull elbow straight back past your hip','Fully stretch the lat at the bottom; pause and squeeze at top','Don\'t rotate your hips — keep them square'],
+    primary:['Lats','Upper Back'], secondary:['Biceps','Rear Delts']
+  },
+  'upright-row': {
+    images:[],
+    cues:['Grip shoulder-width or slightly wider to reduce impingement risk','Pull elbows high — above shoulder level at the top','Bar travels close to body throughout the movement','Use moderate weight; shoulder impingement risk at narrow grips'],
+    primary:['Traps','Front Delts'], secondary:['Biceps','Rear Delts']
+  },
+  'barbell-shrug': {
+    images:[
+      {url:W+'150/Barbell-shrugs-1.png', caption:'Start — Overhand grip, arms straight, traps relaxed at the bottom'},
+      {url:W+'150/Barbell-shrugs-2.png', caption:'Shrug — Shoulders straight up; hold 1–2 seconds at peak'},
+    ],
+    cues:['Shrug straight up — don\'t roll your shoulders forward or back','Hold at the top for 1–2 seconds to max-contract the traps','Full drop at the bottom — stretch the traps between reps','Heavy weight is fine; use straps if grip fails first'],
+    primary:['Traps'], secondary:['Forearms']
+  },
+  'dumbbell-shrug': {
+    images:[
+      {url:W+'151/Dumbbell-shrugs-1.png', caption:'Start — Dumbbells at sides, arms straight, full trap stretch'},
+      {url:W+'151/Dumbbell-shrugs-2.png', caption:'Shrug — Straight up, squeeze hard at the peak'},
+    ],
+    cues:['Greater ROM than barbell — dumbbells hang freely at sides','Shrug straight up; don\'t roll or rotate shoulders','Squeeze hard at the top for 1–2 seconds','Slow lowering for more time under tension'],
+    primary:['Traps'], secondary:['Forearms']
+  },
+  'decline-bench': {
+    images:[
+      {url:W+'100/Decline-bench-press-1.png', caption:'Setup — Head below hips, bar at lower-chest height'},
+      {url:W+'100/Decline-bench-press-2.png', caption:'Press — Bar travels to lower chest; elbows ~60° from torso'},
+    ],
+    cues:['Secure feet under pads — head lower than hips throughout','Lower bar to lower chest; elbows ~60° from body (not flared wide)','Less shoulder stress than flat bench — good for lower-chest emphasis','Use a spotter; getting pinned on decline is harder to escape'],
+    primary:['Chest'], secondary:['Triceps','Front Delts']
+  },
+  'pec-deck': {
+    images:[
+      {url:W+'98/Butterfly-machine-2.png', caption:'Peak contraction — Arms meet at midline; hold 1 second'},
+    ],
+    cues:['Set seat height so handles are at chest level when arms are open','Keep a slight elbow bend — fixed throughout the movement','Squeeze hard at the midline and hold for 1 second','Constant tension throughout vs. free weights; great for the pump'],
+    primary:['Chest'], secondary:['Front Delts']
+  },
+  'incline-fly': {
+    images:[
+      {url:W+'122/Incline-cable-flyes-1.png', caption:'Bottom — Arms arc wide; deep stretch across the chest'},
+      {url:W+'122/Incline-cable-flyes-2.png', caption:'Top — Arms come together overhead; squeeze chest at peak'},
+    ],
+    cues:['Set bench 30–45° incline for upper-chest focus','Arc dumbbells wide — like hugging a big barrel','Feel the stretch at the bottom; don\'t go past comfortable','Control the descent — eccentric is where the gains are'],
+    primary:['Chest'], secondary:['Front Delts']
+  },
+  'machine-shoulder-press': {
+    images:[
+      {url:W+'53/Shoulder-press-machine-2.png', caption:'Press — Handle rises to full lockout; elbows track the machine path'},
+    ],
+    cues:['Adjust seat so handles are at shoulder height to start','Press straight up to full extension — controlled lockout','Machine guides the path; great for isolation and volume','Good substitute when fatigue or injury limits free-weight stability'],
+    primary:['Front Delts'], secondary:['Triceps','Traps']
+  },
+  'cable-lateral-raise': {
+    images:[
+      {url:W+'148/lateral-dumbbell-raises-large-1.png', caption:'Start position — Cable at hip, elbow slightly bent, arm crosses body'},
+    ],
+    cues:['Cable runs across body at hip height — constant tension unlike dumbbells','Lead with elbow — slight bend fixed throughout the rep','Raise to shoulder height; control the descent back down','Tension at the bottom is the key advantage over dumbbell raises'],
+    primary:['Front Delts'], secondary:['Traps']
+  },
+  'chin-up': {
+    images:[
+      {url:W+'181/Chin-ups-1.png', caption:'Dead hang — Supinated grip (palms toward you), full arm extension'},
+      {url:W+'181/Chin-ups-2.png', caption:'Peak — Chin clears the bar; elbows drive toward hips'},
+    ],
+    cues:['Supinated (underhand) grip — more bicep involvement than pull-ups','Dead hang at the bottom — full elbow extension every rep','Pull elbows down toward your hips, not just pull hands up','Chin fully clears the bar at the top to count the rep'],
+    primary:['Biceps','Lats'], secondary:['Upper Back','Rear Delts']
+  },
+  'concentration-curl': {
+    images:[],
+    cues:['Elbow braced against inner thigh — eliminates all swinging','Rotate wrist outward at peak for maximum bicep contraction','Control the eccentric — slow and deliberate each rep','Great as a finisher to fully exhaust the bicep'],
+    primary:['Biceps'], secondary:['Forearms']
+  },
+  'reverse-curl': {
+    images:[],
+    cues:['Overhand (pronated) grip — targets brachioradialis and forearms heavily','Keep wrists neutral throughout — don\'t let them break back','Lighter than regular curl is completely normal','Great for building arm thickness and grip strength'],
+    primary:['Forearms'], secondary:['Biceps']
+  },
+  'rope-pushdown': {
+    images:[
+      {url:W+'84/Lying-close-grip-triceps-press-to-chin-1.png', caption:'Rope at high cable; elbows pinned at sides; split rope at bottom for full contraction'},
+    ],
+    cues:['Split the rope apart at the bottom — gets the lateral head fully contracted','Keep elbows pinned at your sides throughout the whole movement','Lean very slightly forward to keep tension at full extension','Don\'t let elbows drift back during the press — stay strict'],
+    primary:['Triceps'], secondary:['Forearms']
+  },
+  'hack-squat': {
+    images:[
+      {url:W+'130/Narrow-stance-hack-squats-1-1024x721.png', caption:'Start — Feet mid-platform, machine on shoulders, ready to descend'},
+      {url:W+'130/Narrow-stance-hack-squats-2-1024x721.png', caption:'Bottom — Deep as possible; knees track over toes along machine path'},
+    ],
+    cues:['Feet mid-platform, shoulder-width — machine guides the range','Go as deep as possible — machine path is safer than free squat for depth','Don\'t lock out at the top; keep tension on quads','Closer feet = more quad; wider feet = more glute involvement'],
+    primary:['Quads'], secondary:['Glutes','Hamstrings']
+  },
+  'seated-calf-raise': {
+    images:[],
+    cues:['Seated position isolates the soleus — the deep calf muscle under the gastrocnemius','Full ROM — deep stretch at the bottom, full rise at the top','Slow eccentric (3–4 seconds down) for maximum stimulus','Calves respond well to high reps; 15–25 per set is normal'],
+    primary:['Calves'], secondary:[]
+  },
+  'hip-abduction': {
+    images:[],
+    cues:['Toes straight ahead or slightly turned in for best glute activation','Push pads apart as far as comfortable range allows','Squeeze at full abduction; control the return — don\'t let it snap back','Higher reps (15–20) tend to work well for this machine'],
+    primary:['Glutes'], secondary:[]
+  },
+  'hip-adduction': {
+    images:[],
+    cues:['Squeeze pads together using inner thighs — not your quads','Full ROM — let legs separate fully before squeezing back in','Slow controlled tempo; avoid bouncing at either end','Often undertrained; direct adductor work helps hip stability and knee health'],
+    primary:['Glutes'], secondary:['Hamstrings']
+  },
+  'glute-bridge': {
+    images:[],
+    cues:['Feet flat, knees bent, heels a comfortable distance from glutes','Drive hips straight up until body is in a straight line','Squeeze glutes HARD at the top and hold for 2 seconds','Don\'t hyperextend the spine; stop when hips are level'],
+    primary:['Glutes'], secondary:['Hamstrings','Abs']
+  },
+  'cable-kickback': {
+    images:[],
+    cues:['Ankle cuff attached to low cable; hold onto a support','Kick leg straight back — keep a slight knee bend throughout','Squeeze the glute hard at full extension','Slow controlled return — don\'t let the cable jerk you back'],
+    primary:['Glutes'], secondary:['Hamstrings']
+  },
+  'single-leg-rdl': {
+    images:[],
+    cues:['Hinge on one leg — keep a slight bend in the standing knee','Arms hang straight down; back stays completely flat','Feel the hamstring stretch — your trailing leg goes back as a counterbalance','Standing leg hip stays level — no hip hiking'],
+    primary:['Hamstrings','Glutes'], secondary:['Lower Back','Abs']
+  },
+  'straight-arm-pulldown': {
+    images:[],
+    cues:['Arms stay completely straight — this is shoulder extension, not an arm pull','Hinge slightly forward; pull bar from overhead down to your thighs','Feel the lat stretch at the top; hard contraction at the bottom','Great lat isolation — keeps biceps out of the equation'],
+    primary:['Lats'], secondary:['Abs','Triceps']
+  },
+  'lat-pullover': {
+    images:[],
+    cues:['Lie across bench; hold one dumbbell overhead with both hands','Lower behind head until you feel a deep lat and chest stretch','Pull back to over chest — keep slight elbow bend throughout','Works both chest and lats — rare dual-muscle movement'],
+    primary:['Lats'], secondary:['Chest','Abs','Triceps']
+  },
+  'ab-wheel': {
+    images:[],
+    cues:['Start from knees until you can do standing rollouts','Roll out until body is almost parallel to floor — abs must not let you sag','Pull back using abs — don\'t just use your arms to drag yourself back','One of the hardest ab movements; progress slowly'],
+    primary:['Abs'], secondary:['Lower Back','Triceps','Lats']
+  },
+  'bicycle-crunch': {
+    images:[
+      {url:W+'176/Cross-body-crunch-1.png', caption:'Rotation — Elbow meets opposite knee; other leg extends low'},
+      {url:W+'176/Cross-body-crunch-2.png', caption:'Switch — Opposite elbow drives toward the extending knee'},
+    ],
+    cues:['Rotate the SHOULDER toward the knee — not just the elbow','Extend the other leg low to the ground; don\'t bring knees in together','Slow and controlled — not a speed race; each rep deliberate','Hands behind head lightly — don\'t pull on your neck'],
+    primary:['Obliques'], secondary:['Abs']
+  },
+  'side-plank': {
+    images:[],
+    cues:['Elbow directly under shoulder — not in front or behind','Stack your feet or stagger for stability','Keep hips high — body in a straight diagonal line','Progress to hip dips or reach-through for added difficulty'],
+    primary:['Obliques'], secondary:['Abs','Glutes']
+  },
+  'dead-bug': {
+    images:[],
+    cues:['Lower back pressed FLAT to floor throughout — this is non-negotiable','Extend opposite arm and leg simultaneously; breathe out as you extend','Move slowly — the challenge is anti-rotation stabilization, not the speed','Arms and legs hover 2–3 inches from the floor at full extension'],
+    primary:['Abs'], secondary:['Lower Back','Obliques']
+  },
+  'mountain-climber': {
+    images:[],
+    cues:['Start in a push-up position — hips level, core braced','Drive knees to chest alternately — don\'t let hips rise or fall','Slow = strength and stability work; fast = cardio conditioning','Keep shoulders over wrists throughout'],
+    primary:['Abs'], secondary:['Obliques','Front Delts','Quads']
+  },
+  'pallof-press': {
+    images:[],
+    cues:['Stand sideways to the cable — anchor point at chest height','Press straight out from chest and hold for 2 full seconds','The challenge is resisting the rotation — don\'t let the cable pull you sideways','Closer to the stack = harder; step out to reduce load'],
+    primary:['Abs'], secondary:['Obliques','Lats']
+  },
+  'reverse-fly-machine': {
+    images:[
+      {url:W+'98/Butterfly-machine-2.png', caption:'Handles in reverse position — arms open wide to target rear delts'},
+    ],
+    cues:['Set seat so handles are at shoulder height with arms reaching forward','Open arms wide — rear delts do the work, not upper traps','Control the return — don\'t let the machine snap the arms back','Light weight and strict form; rear delts fatigue quickly'],
+    primary:['Rear Delts'], secondary:['Upper Back','Traps']
+  }
+};
+
+function openFormGuide(exId) {
+  const guide = FORM_GUIDE[exId];
+  if (!guide) return;
+  const ex = EX_MAP[exId];
+  document.getElementById('formOverlayTitle').textContent = ex ? ex.name : 'Correct Form';
+
+  const content = document.getElementById('formContent');
+  content.innerHTML = `
+    ${guide.images.length ? `
+    <div>
+      <div class="form-section-label">Form Illustrations</div>
+      <div class="form-gallery">
+        ${guide.images.map(img => `
+          <div class="form-img-card">
+            <img src="${img.url}" alt="${img.caption}" loading="lazy"
+                 onerror="this.closest('.form-img-card').style.display='none'">
+            <div class="form-img-caption">${img.caption}</div>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+    <div>
+      <div class="form-section-label">Key Cues</div>
+      <div class="form-cues">
+        ${guide.cues.map(c => `
+          <div class="form-cue">
+            <span class="form-cue-tick">✓</span>
+            <span>${c}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div>
+      <div class="form-section-label">Muscles Worked</div>
+      <div class="form-muscles">
+        ${guide.primary.map(m => `<span class="form-muscle-badge primary">${m}</span>`).join('')}
+        ${guide.secondary.map(m => `<span class="form-muscle-badge secondary">${m}</span>`).join('')}
+      </div>
+    </div>
+    ${guide.images.length ? '<div class="form-credit">Illustrations © Everkinetic (CC BY-SA 3.0) via wger.de</div>' : ''}
+  `;
+  document.getElementById('formOverlay').classList.add('open');
+}
+
+function closeFormGuide() {
+  document.getElementById('formOverlay').classList.remove('open');
+}
+// ── END PHASE 3 ──
+
+// ══════════════════════════════════════════════
+// PHASE 4 — STATE, FILTERS, EVENT HANDLERS, INIT
+// ══════════════════════════════════════════════
+
+// ── App state ───────────────────────────────
+const ST = {
+  tab: 'all',
+  equip: 'all',
+  zones: [],          // selected muscle zones
+  bodyView: 'front',
+  heatmap: false,
+  search: '',
+  activeId: null,
+  added: {}
+};
+
+// ── Filter logic ─────────────────────────────
+function getFiltered() {
+  let list = EX;
+
+  if (ST.tab === 'fav')    list = list.filter(e => e.fav);
+  if (ST.tab === 'recent') list = list.filter(e => e.recent);
+
+  if (ST.search) {
+    const q = ST.search.toLowerCase();
+    list = list.filter(e =>
+      e.name.toLowerCase().includes(q) ||
+      (e.aliases||[]).some(a => a.toLowerCase().includes(q)) ||
+      e.primary.some(m => m.replace('_',' ').includes(q)) ||
+      e.equip.includes(q)
+    );
+  }
+
+  if (ST.equip !== 'all') list = list.filter(e => e.equip === ST.equip);
+
+  if (ST.zones.length) {
+    list = list.filter(e =>
+      ST.zones.some(z =>
+        e.primary.includes(z) || (e.secondary||[]).includes(z)
+      )
+    );
+  }
+
+  return list;
+}
+
+// ── Body-map zone toggling ────────────────────
+function toggleZone(muscle) {
+  if (ST.heatmap) return; // body map is read-only in heatmap mode
+  const i = ST.zones.indexOf(muscle);
+  if (i >= 0) ST.zones.splice(i, 1);
+  else ST.zones.push(muscle);
+  paintBodyMap();
+  render();
+}
+
+function paintBodyMap() {
+  // Reset everything first
+  document.querySelectorAll('#body-svg .zone').forEach(el => {
+    el.classList.remove('sel');
+    for (let i = 0; i <= 4; i++) el.classList.remove(`heat-${i}`);
+  });
+
+  if (ST.heatmap) {
+    Object.entries(ZONE_ELS).forEach(([muscle, ids]) => {
+      const sets = HEAT[muscle] || 0;
+      const cls = sets === 0 ? 'heat-0'
+        : sets <= 2 ? 'heat-1'
+        : sets <= 4 ? 'heat-2'
+        : sets <= 7 ? 'heat-3'
+        : 'heat-4';
+      ids.forEach(id => { const el=document.getElementById(id); if(el) el.classList.add(cls); });
+    });
+  } else {
+    ST.zones.forEach(muscle => {
+      (ZONE_ELS[muscle]||[]).forEach(id => {
+        const el = document.getElementById(id); if(el) el.classList.add('sel');
+      });
+    });
+  }
+}
+
+// ── Heatmap toggle ────────────────────────────
+function toggleHeat() {
+  ST.heatmap = !ST.heatmap;
+  if (ST.heatmap) ST.zones = []; // clear zone selection when entering heatmap
+  document.getElementById('heatBtn').classList.toggle('on', ST.heatmap);
+  document.getElementById('volSection').style.display = ST.heatmap ? '' : 'none';
+  paintBodyMap();
+  render();
+}
+
+// ── Front/back body toggle ─────────────────────
+function setView(view, btn) {
+  ST.bodyView = view;
+  document.getElementById('gFront').style.display = view === 'front' ? '' : 'none';
+  document.getElementById('gBack').style.display  = view === 'back'  ? '' : 'none';
+  document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  paintBodyMap(); // re-apply highlights to the newly visible side
+}
+
+// ── Tabs ──────────────────────────────────────
+function setTab(tab, btn) {
+  ST.tab = tab;
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  render();
+}
+
+// ── Equipment filter ──────────────────────────
+function setEquip(equip, chip) {
+  ST.equip = equip;
+  document.querySelectorAll('.filter-row .chip').forEach(c => c.classList.remove('on'));
+  chip.classList.add('on');
+  render();
+}
+
+// ── Search ────────────────────────────────────
+let _searchT;
+function onSearch() {
+  clearTimeout(_searchT);
+  _searchT = setTimeout(() => {
+    ST.search = document.getElementById('search').value.trim();
+    render();
+  }, 150);
+}
+
+// ── Quick-add ─────────────────────────────────
+let _toastTimer;
+function quickAdd(id, btn) {
+  ST.added[id] = true;
+  document.querySelectorAll('.badge-add').forEach(b => {
+    if (b.getAttribute('onclick')?.includes(`'${id}'`)) {
+      b.textContent = '✓ Added'; b.classList.add('added');
+    }
+  });
+  const main = document.getElementById('mainAddBtn');
+  if (main) { main.textContent = '✓ Added to session'; main.classList.add('added'); }
+  render();
+  // Show "Log it now" toast
+  const ex = EX_MAP[id];
+  const name = ex ? ex.name : id;
+  const toast = document.getElementById('addToast');
+  document.getElementById('addToastText').textContent = '✓ ' + name + ' added';
+  document.getElementById('addToastLink').href =
+    'frictionless_logging.html?ex=' + encodeURIComponent(id) +
+    '&name=' + encodeURIComponent(name);
+  clearTimeout(_toastTimer);
+  toast.classList.add('show');
+  _toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+}
+
+// ── INIT ──────────────────────────────────────
+render();
+
+// URL param: ?zone=chest pre-selects body map; ?ex=bench-press opens detail
+(function() {
+  const p = new URLSearchParams(location.search);
+  const z = p.get('zone');
+  const exId = p.get('ex');
+  if (z && ZONE_ELS[z]) {
+    const backZones = ['traps','upper_back','rear_delt','triceps','lats','lower_back','glutes','hamstrings'];
+    const btns = document.querySelectorAll('.view-toggle button');
+    if (backZones.includes(z)) setView('back', btns[1]);
+    ST.zones = [z];
+    paintBodyMap();
+    render();
+  }
+  if (exId && EX_MAP[exId]) {
+    setTimeout(() => openDetail(exId), 120);
+  }
+})();
+// ── END PHASE 4 ──
+
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>

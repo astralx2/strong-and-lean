@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fitness App — Wedge Explorer & Vision Prototype</title>
+<style>
+  :root{
+    --bg:#0b0e14; --bg2:#11151f; --panel:#161b27; --panel2:#1c2230;
+    --line:#283044; --txt:#e8edf6; --mut:#9aa6bd; --dim:#6b768c;
+    --a1:#7c5cff; --a2:#23d5ab; --a3:#ff6b9d; --warn:#ffb454; --good:#3ddc84;
+    --grad:linear-gradient(135deg,#7c5cff 0%,#23d5ab 100%);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 700px at 80% -10%,rgba(124,92,255,.18),transparent),
+               radial-gradient(900px 600px at -10% 110%,rgba(35,213,171,.12),transparent),
+               var(--bg);
+    color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--a2);text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+  header.top{position:sticky;top:0;z-index:50;background:rgba(11,14,20,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .topbar{display:flex;align-items:center;gap:18px;padding:12px 0;flex-wrap:wrap}
+  .brand{font-weight:800;letter-spacing:.3px;font-size:15px;display:flex;align-items:center;gap:9px}
+  .brand .dot{width:13px;height:13px;border-radius:50%;background:var(--grad);box-shadow:0 0 16px rgba(124,92,255,.7)}
+  nav.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+  nav.tabs button{
+    background:transparent;border:1px solid transparent;color:var(--mut);
+    padding:7px 13px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;
+  }
+  nav.tabs button:hover{color:var(--txt);background:var(--panel)}
+  nav.tabs button.active{color:#fff;background:var(--panel2);border-color:var(--line)}
+  nav.tabs button.active.wA{box-shadow:inset 0 -2px 0 var(--a1)}
+  nav.tabs button.active.wB{box-shadow:inset 0 -2px 0 var(--a2)}
+  nav.tabs button.active.wC{box-shadow:inset 0 -2px 0 var(--a3)}
+
+  section.view{display:none;padding:34px 0 70px;animation:fade .35s ease}
+  section.view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--a2)}
+  h1{font-size:40px;line-height:1.1;margin:10px 0 8px;font-weight:850;letter-spacing:-.5px}
+  h2{font-size:25px;margin:0 0 6px;font-weight:800;letter-spacing:-.3px}
+  h3{font-size:16px;margin:0 0 6px;font-weight:700}
+  p.lead{font-size:17px;color:var(--mut);max-width:760px;margin:6px 0 0}
+  .muted{color:var(--mut)}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:880px){.grid3,.grid2{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+  .card.glow{position:relative;overflow:hidden}
+  .card.glow::before{content:"";position:absolute;inset:0;background:var(--grad);opacity:.06}
+  .chip{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.4px;padding:3px 9px;border-radius:20px;border:1px solid var(--line);color:var(--mut);background:var(--bg2)}
+  .chip.a1{color:#b9a7ff;border-color:rgba(124,92,255,.45)}
+  .chip.a2{color:#8ff0d8;border-color:rgba(35,213,171,.45)}
+  .chip.a3{color:#ffaecb;border-color:rgba(255,107,157,.45)}
+  .chip.rec{color:#0b0e14;background:var(--good);border-color:var(--good)}
+  .chip.warn{color:var(--warn);border-color:rgba(255,180,84,.45)}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px}
+  @media(max-width:880px){.stats{grid-template-columns:1fr 1fr}}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .stat .n{font-size:27px;font-weight:850;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat .l{font-size:12.5px;color:var(--mut);margin-top:3px}
+
+  /* wedge hero */
+  .whero{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px}
+  .badgeBig{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:850;font-size:24px;color:#0b0e14}
+  .wA .badgeBig{background:linear-gradient(135deg,#9b86ff,#7c5cff)}
+  .wB .badgeBig{background:linear-gradient(135deg,#4ef0c8,#23d5ab)}
+  .wC .badgeBig{background:linear-gradient(135deg,#ff8fb6,#ff6b9d)}
+
+  /* story / carousel */
+  .story-shell{background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:22px;margin-top:18px}
+  .story-stage{display:grid;grid-template-columns:300px 1fr;gap:30px;align-items:center;min-height:560px}
+  @media(max-width:880px){.story-stage{grid-template-columns:1fr;justify-items:center}}
+  .slides{position:relative}
+  .slide{display:none}
+  .slide.on{display:block;animation:fade .4s ease}
+  .scap{max-width:520px}
+  .scap .step{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--a2)}
+  .scap h3{font-size:22px;margin:6px 0 10px}
+  .scap p{color:var(--mut);font-size:15.5px;margin:0 0 12px}
+  .scap .why{font-size:13.5px;background:var(--panel);border-left:3px solid var(--a1);border-radius:0 10px 10px 0;padding:10px 14px;color:#cdd6e6}
+  .scap .why b{color:#fff}
+
+  .ctrls{display:flex;align-items:center;gap:14px;margin-top:20px}
+  .ctrls button{background:var(--panel2);border:1px solid var(--line);color:var(--txt);width:42px;height:42px;border-radius:50%;font-size:18px;cursor:pointer;transition:.15s}
+  .ctrls button:hover{background:var(--a1);border-color:var(--a1)}
+  .dots{display:flex;gap:7px}
+  .dots i{width:8px;height:8px;border-radius:50%;background:var(--line);cursor:pointer;transition:.2s}
+  .dots i.on{background:var(--a2);width:22px;border-radius:6px}
+  .slidecount{font-size:13px;color:var(--mut);margin-left:auto}
+
+  /* phone */
+  .phone{width:280px;height:570px;background:#05070c;border-radius:38px;padding:11px;box-shadow:0 30px 70px rgba(0,0,0,.55),0 0 0 1px var(--line);margin:0 auto;position:relative}
+  .phone::before{content:"";position:absolute;top:20px;left:50%;transform:translateX(-50%);width:90px;height:6px;background:#1a2030;border-radius:6px;z-index:5}
+  .screen{width:100%;height:100%;background:linear-gradient(180deg,#10141d,#0c0f16);border-radius:28px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .sbar{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 6px;font-size:11px;color:var(--mut);font-weight:600}
+  .scr-body{flex:1;overflow:hidden;padding:6px 16px 16px}
+  .scr-title{font-size:18px;font-weight:800;margin:4px 0 12px}
+  .uirow{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-bottom:9px}
+  .uirow.tight{padding:9px 12px;margin-bottom:7px}
+  .flex{display:flex;align-items:center;gap:10px}
+  .between{justify-content:space-between}
+  .mini{font-size:11.5px;color:var(--mut)}
+  .big{font-size:23px;font-weight:850}
+  .pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;display:inline-block}
+  .pill.g{background:rgba(61,220,132,.16);color:var(--good)}
+  .pill.v{background:rgba(124,92,255,.18);color:#b9a7ff}
+  .pill.o{background:rgba(255,180,84,.16);color:var(--warn)}
+  .btnf{background:var(--grad);color:#06251f;text-align:center;font-weight:800;padding:12px;border-radius:13px;font-size:14px;margin-top:6px}
+  .barwrap{height:8px;background:#0c1018;border-radius:6px;overflow:hidden;margin-top:7px}
+  .bar{height:100%;border-radius:6px;background:var(--grad)}
+  .ring{width:96px;height:96px;border-radius:50%;margin:6px auto;display:flex;align-items:center;justify-content:center;flex-direction:column;
+        background:conic-gradient(var(--a2) var(--p,80%),#1a2030 0);position:relative}
+  .ring::after{content:"";position:absolute;inset:9px;border-radius:50%;background:#0c0f16}
+  .ring span{position:relative;z-index:2}
+  .photo{height:120px;border-radius:13px;background:
+     linear-gradient(135deg,#3a2a1e,#5a3b22 40%,#7a5a2e 60%,#46603a);position:relative;overflow:hidden;border:1px solid var(--line)}
+  .photo .tag{position:absolute;border:1.5px dashed rgba(255,255,255,.6);border-radius:8px;font-size:9px;color:#fff;padding:1px 5px;background:rgba(0,0,0,.35)}
+  .confbar{display:flex;gap:5px;align-items:center;font-size:10px;color:var(--mut);margin-top:3px}
+  .celebrate{text-align:center;padding:8px}
+  .celebrate .pr{font-size:15px;font-weight:850;color:var(--good)}
+  .voicewave{display:flex;gap:3px;align-items:center;justify-content:center;height:40px}
+  .voicewave i{width:4px;background:var(--a2);border-radius:3px;animation:vw 1s ease-in-out infinite}
+  @keyframes vw{0%,100%{height:8px}50%{height:34px}}
+  .scr-foot{display:flex;justify-content:space-around;padding:9px 0;border-top:1px solid var(--line);font-size:10px;color:var(--dim)}
+  .scr-foot b{color:var(--a2)}
+
+  /* data panel */
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  @media(max-width:880px){.twocol{grid-template-columns:1fr}}
+  ul.tick{list-style:none;padding:0;margin:6px 0 0}
+  ul.tick li{padding:5px 0 5px 24px;position:relative;font-size:14px;color:#cdd6e6}
+  ul.tick li::before{content:"✓";position:absolute;left:0;color:var(--good);font-weight:800}
+  ul.cross li::before{content:"✕";color:var(--a3)}
+
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14px}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);font-weight:700}
+  td.dim{color:var(--mut)}
+  tr.hl td{background:rgba(61,220,132,.06)}
+  .scoredots{letter-spacing:2px}
+
+  .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .flow .node{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:10px 13px;font-size:13px;font-weight:600}
+  .flow .arr{color:var(--a2);font-size:18px}
+  .flow .node small{display:block;color:var(--mut);font-weight:500;font-size:11px}
+
+  .callout{background:linear-gradient(135deg,rgba(124,92,255,.12),rgba(35,213,171,.1));border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:22px}
+  .callout h3{font-size:18px}
+  .footnote{font-size:12px;color:var(--dim);margin-top:30px;border-top:1px solid var(--line);padding-top:16px}
+
+  .kbd{font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:5px;padding:1px 6px;background:var(--bg2)}
+
+  /* flywheel */
+  .fly{display:flex;flex-direction:column;gap:0;align-items:center;margin-top:10px}
+  .flybox{width:100%;max-width:560px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px 16px;text-align:center}
+  .flyarr{color:var(--a2);font-size:22px;line-height:1}
+  .flybox b{color:#fff}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap topbar">
+    <div class="brand"><span class="dot"></span> Fitness App · Vision Prototype <span class="chip" style="margin-left:6px">v0.1 · interactive</span></div>
+    <nav class="tabs">
+      <button data-v="overview" class="active">Overview</button>
+      <button data-v="wedgeA" class="wA">A · Strong&nbsp;&amp;&nbsp;Lean</button>
+      <button data-v="wedgeB" class="wB">B · Effortless&nbsp;Nutrition</button>
+      <button data-v="wedgeC" class="wC">C · Your&nbsp;Coach</button>
+      <button data-v="compare">Compare</button>
+      <button data-v="b2b">B2B&nbsp;Engine</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ===================== OVERVIEW ===================== -->
+<section class="view active wrap" id="overview">
+  <div class="eyebrow">Discovery · choosing the MVP wedge</div>
+  <h1>One product. Three ways in.</h1>
+  <p class="lead">We can't build everything at once. The MVP must nail <b>one loop, excellently</b>. Below are the three candidate "wedges" — slide through each as a real user would experience it, then compare. The thesis underneath all three: <b>capture, don't log · one graph of you · identity over streaks.</b></p>
+
+  <div class="grid3" style="margin-top:26px">
+    <div class="card glow wA" style="cursor:pointer" onclick="go('wedgeA')">
+      <span class="chip a1">WEDGE A</span> <span class="chip rec">★ Recommended</span>
+      <h2 style="margin-top:12px">Strong &amp; Lean</h2>
+      <p class="muted" style="font-size:14px">Strength logging + frictionless nutrition, unified. For the recomposition &amp; GLP-1 crowd — highest engagement &amp; willingness to pay.</p>
+      <div class="mini" style="margin-top:10px;color:var(--a2)">Slide through the story →</div>
+    </div>
+    <div class="card glow wB" style="cursor:pointer" onclick="go('wedgeB')">
+      <span class="chip a2">WEDGE B</span>
+      <h2 style="margin-top:12px">Effortless Nutrition</h2>
+      <p class="muted" style="font-size:14px">AI food logging done right — photo + voice + meal-memory. Attacks the most-hated chore &amp; MyFitnessPal's unhappy base. Fastest to ship.</p>
+      <div class="mini" style="margin-top:10px;color:var(--a2)">Slide through the story →</div>
+    </div>
+    <div class="card glow wC" style="cursor:pointer" onclick="go('wedgeC')">
+      <span class="chip a3">WEDGE C</span>
+      <h2 style="margin-top:12px">Your Coach</h2>
+      <p class="muted" style="font-size:14px">Unified intelligence — wearables in, correlations out, "what to do today." Most differentiated &amp; highest ARPU, but heaviest to build.</p>
+      <div class="mini" style="margin-top:10px;color:var(--a2)">Slide through the story →</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n">$12–15B</div><div class="l">Fitness-app software market, 2025–26 (→ ~$30B by 2031)</div></div>
+    <div class="stat"><div class="n">3–10%</div><div class="l">Day-30 retention for the median fitness app — the real battleground</div></div>
+    <div class="stat"><div class="n">&lt;3 taps</div><div class="l">Target to log a meal (vs. MyFitnessPal's search-and-scroll tax)</div></div>
+    <div class="stat"><div class="n">&gt;20%</div><div class="l">Day-30 retention our MVP must hit to prove the thesis</div></div>
+  </div>
+
+  <div class="callout">
+    <h3>How to use this</h3>
+    <p class="muted" style="margin:6px 0 0">Click a wedge above (or the top tabs). Each opens a <b>story slider</b> — mock app screens that walk the user's journey through that wedge's "magic moments," with a note on <i>why each moment matters</i>. Use the arrows, the dots, or your <span class="kbd">←</span> <span class="kbd">→</span> keys. Then hit <b>Compare</b> for the side-by-side, and <b>B2B Engine</b> for the dual-engine second act.</p>
+  </div>
+</section>
+
+<!-- ===================== WEDGE A ===================== -->
+<section class="view wrap wA" id="wedgeA">
+  <div class="whero">
+    <div class="badgeBig">A</div>
+    <div>
+      <span class="chip a1">WEDGE A</span> <span class="chip rec">★ Recommended</span>
+      <h1 style="font-size:33px;margin:8px 0 2px">Strong &amp; Lean</h1>
+      <p class="lead" style="font-size:15.5px">Frictionless strength logging <b>×</b> protein-first nutrition <b>×</b> a unified dashboard <b>×</b> a weekly progress story. The gym-and-kitchen seam <b>nobody owns.</b></p>
+    </div>
+  </div>
+  <div class="flex" style="gap:8px;flex-wrap:wrap;margin-top:6px">
+    <span class="chip">🎯 Recomp Ryan</span><span class="chip">💊 GLP-1 Grace</span>
+    <span class="chip">Highest engagement &amp; LTV</span><span class="chip">Rides the GLP-1 wave</span>
+  </div>
+
+  <div class="story-shell">
+    <div class="story-stage">
+      <div class="slides" id="A-slides">
+        <!-- A1 -->
+        <div class="slide on">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>9:41</span><span>setup · 0:42</span></div>
+            <div class="scr-body">
+              <div class="scr-title">Let's meet future you</div>
+              <div class="uirow"><div class="mini">Goal</div><div class="flex between"><b>Build muscle, stay lean</b><span class="pill v">recomp</span></div></div>
+              <div class="uirow"><div class="mini">Experience</div><b>Trains 4× / week</b></div>
+              <div class="uirow"><div class="mini">Protein target</div><div class="flex between"><b>165 g / day</b><span class="pill g">hero metric</span></div></div>
+              <div class="uirow tight"><div class="mini">12-week projection</div><div class="flex between"><span class="big">100kg</span><span class="mini">bench by Sept ↑</span></div></div>
+              <div class="btnf">Start — log my first thing →</div>
+            </div>
+            <div class="scr-foot"><span><b>Today</b></span><span>Log</span><span>Progress</span><span>You</span></div>
+          </div></div>
+        </div>
+        <!-- A2 -->
+        <div class="slide">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>12:30</span><span>📷 capture</span></div>
+            <div class="scr-body">
+              <div class="scr-title">Snap your plate</div>
+              <div class="photo">
+                <span class="tag" style="top:14px;left:16px">Chicken · 220g</span>
+                <span class="tag" style="bottom:18px;left:30px">Rice · ~1.2 cup</span>
+                <span class="tag" style="top:40px;right:16px">Broccoli</span>
+              </div>
+              <div class="uirow" style="margin-top:11px"><div class="flex between"><b>Grilled chicken bowl</b><span class="big">620</span></div>
+                <div class="confbar"><span>protein <b style="color:#fff">48g</b></span>·<span>carbs 61g</span>·<span>fat 14g</span></div>
+                <div class="confbar">confidence <div class="barwrap" style="width:80px;margin:0 0 0 6px"><div class="bar" style="width:72%"></div></div> rice portion?</div>
+              </div>
+              <div class="uirow tight"><div class="flex between"><span class="mini">Tap rice to adjust portion</span><span class="pill o">1 tap fixes it</span></div></div>
+              <div class="btnf">Save · 8 seconds, 2 taps</div>
+            </div>
+            <div class="scr-foot"><span>Today</span><span><b>Log</b></span><span>Progress</span><span>You</span></div>
+          </div></div>
+        </div>
+        <!-- A3 -->
+        <div class="slide">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>6:12</span><span>🏋️ push day</span></div>
+            <div class="scr-body">
+              <div class="scr-title">Bench Press</div>
+              <div class="uirow tight"><div class="flex between"><span class="mini">Set 1 · last time 82.5kg×8</span><span class="pill g">✓ 85×8</span></div></div>
+              <div class="uirow tight"><div class="flex between"><span class="mini">Set 2 · suggested <b style="color:#fff">+2.5kg</b></span><span class="pill v">85kg × 8</span></div></div>
+              <div class="uirow tight"><div class="flex between"><span class="mini">Set 3</span><span class="mini">rest 2:00 ⏱</span></div></div>
+              <div class="celebrate uirow" style="border-color:var(--good)">
+                <div class="pr">🎉 New 3-rep PR!</div>
+                <div class="mini">Est. 1RM 104kg · +6% in 8 weeks</div>
+              </div>
+              <div class="btnf">Speak it: "85 for 8" 🎙</div>
+            </div>
+            <div class="scr-foot"><span>Today</span><span><b>Log</b></span><span>Progress</span><span>You</span></div>
+          </div></div>
+        </div>
+        <!-- A4 -->
+        <div class="slide">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>7:05</span><span>good morning</span></div>
+            <div class="scr-body">
+              <div class="scr-title">What to do today</div>
+              <div class="ring" style="--p:88%"><span class="big">88</span><span class="mini">recovered</span></div>
+              <div class="uirow" style="margin-top:4px">
+                <b>You're primed.</b>
+                <div class="mini" style="margin-top:4px">Slept 7.6h · HRV up. Bench is due for a PR attempt. You under-ate protein 2 days — aim <b style="color:#fff">165g</b> today.</div>
+              </div>
+              <div class="flex" style="gap:8px;margin-top:8px">
+                <span class="pill v">🏋️ Upper push</span><span class="pill g">🍗 165g protein</span>
+              </div>
+              <div class="btnf">Start recommended session →</div>
+            </div>
+            <div class="scr-foot"><span><b>Today</b></span><span>Log</span><span>Progress</span><span>You</span></div>
+          </div></div>
+        </div>
+        <!-- A5 -->
+        <div class="slide">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>Sun 8:00</span><span>your week</span></div>
+            <div class="scr-body">
+              <div class="scr-title">This week, you got stronger 💪</div>
+              <div class="uirow"><div class="flex between"><span class="mini">Trained</span><b>4 sessions</b></div>
+                <div class="flex between" style="margin-top:6px"><span class="mini">Volume moved</span><b>42,000 kg</b></div>
+                <div class="flex between" style="margin-top:6px"><span class="mini">PRs set</span><b style="color:var(--good)">2 🏆</b></div>
+                <div class="flex between" style="margin-top:6px"><span class="mini">Protein avg</span><b>148g ↑</b></div>
+                <div class="flex between" style="margin-top:6px"><span class="mini">Weight trend</span><b>−0.4 kg</b></div></div>
+              <div class="uirow tight" style="text-align:center"><span class="mini">"Most consistent week yet — 6 of 7 days."</span></div>
+              <div class="btnf">Share my week ↗</div>
+            </div>
+            <div class="scr-foot"><span>Today</span><span>Log</span><span><b>Progress</b></span><span>You</span></div>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="scap">
+        <div class="step" id="A-step">Step 1 of 5 · Onboarding</div>
+        <h3 id="A-h">60 seconds to "future you"</h3>
+        <p id="A-p">Goal, experience, and a protein target captured in three taps — then we show the projected payoff (a 100kg bench by September) so the goal is <i>imaginable</i> from minute one. Time-to-first-value under a minute is the single biggest retention lever.</p>
+        <div class="why" id="A-why"><b>Why it matters:</b> Most churn is decided in the first session. We hook with a magic moment and a vision before the user can bounce.</div>
+        <div class="ctrls">
+          <button onclick="move('A',-1)">‹</button>
+          <button onclick="move('A',1)">›</button>
+          <div class="dots" id="A-dots"></div>
+          <span class="slidecount" id="A-count"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="twocol">
+    <div class="card"><h3>Why this wins</h3>
+      <ul class="tick">
+        <li>Highest-engagement, highest-LTV users (lifters log near-daily)</li>
+        <li>Clear "it's working" signal — PRs, protein, lean-mass trend</li>
+        <li>Rides the GLP-1 wave (muscle-preservation is urgent &amp; underserved)</li>
+        <li>Owns the gym+kitchen seam no incumbent spans</li>
+        <li>Two pillars together = the unique value (the moat)</li>
+      </ul>
+    </div>
+    <div class="card"><h3>The risk &amp; the proof point</h3>
+      <ul class="tick cross">
+        <li>Two pillars at once = more to build than a single-feature wedge</li>
+      </ul>
+      <p class="muted" style="font-size:13.5px;margin-top:10px"><b>Proof point:</b> Day-30 retention for the strength/recomp cohort beats the 3–10% category baseline (<b style="color:var(--good)">target &gt;20%</b>).</p>
+      <div class="flow">
+        <span class="node">Capture<small>photo · voice · autofill</small></span><span class="arr">→</span>
+        <span class="node">Unify<small>one daily headline</small></span><span class="arr">→</span>
+        <span class="node">Feel it<small>weekly story</small></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== WEDGE B ===================== -->
+<section class="view wrap wB" id="wedgeB">
+  <div class="whero">
+    <div class="badgeBig">B</div>
+    <div>
+      <span class="chip a2">WEDGE B</span> <span class="chip">fastest to ship</span>
+      <h1 style="font-size:33px;margin:8px 0 2px">Effortless Nutrition</h1>
+      <p class="lead" style="font-size:15.5px">The single most-hated chore in fitness — calorie logging — made <b>nearly invisible.</b> Photo + voice + meal-memory, with zero guilt. Aimed straight at MyFitnessPal's unhappy millions.</p>
+    </div>
+  </div>
+  <div class="flex" style="gap:8px;flex-wrap:wrap;margin-top:6px">
+    <span class="chip">⏱ Busy Brian</span><span class="chip">😤 MyFitnessPal refugees</span>
+    <span class="chip">Narrowest scope</span><span class="chip">Biggest, most dissatisfied market</span>
+  </div>
+
+  <div class="story-shell">
+    <div class="story-stage">
+      <div class="slides" id="B-slides">
+        <!-- B1 -->
+        <div class="slide on">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>9:41</span><span>setup · 0:30</span></div>
+            <div class="scr-body">
+              <div class="scr-title">No spreadsheets. Promise.</div>
+              <div class="uirow"><div class="mini">Goal</div><b>Lose a little, feel in control</b></div>
+              <div class="uirow"><div class="mini">Eating style</div><div class="flex between"><b>Anything, balanced</b><span class="pill v">flexible</span></div></div>
+              <div class="uirow"><div class="mini">Daily target (a range, not a verdict)</div><div class="flex between"><b>1,800–2,100</b><span class="pill g">no "fail" line</span></div></div>
+              <div class="btnf">Log my lunch with a photo →</div>
+            </div>
+            <div class="scr-foot"><span><b>Today</b></span><span>Log</span><span>Progress</span><span>You</span></div>
+          </div></div>
+        </div>
+        <!-- B2 -->
+        <div class="slide">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>12:30</span><span>📷 capture</span></div>
+            <div class="scr-body">
+              <div class="scr-title">Snap it</div>
+              <div class="photo"><span class="tag" style="top:14px;left:14px">Burrito</span><span class="tag" style="bottom:16px;right:18px">Chips</span></div>
+              <div class="uirow" style="margin-top:11px"><div class="flex between"><b>Chicken burrito + chips</b><span class="big">740</span></div>
+                <div class="confbar">protein <b style="color:#fff">34g</b> · carbs 78g · fat 28g</div>
+                <div class="confbar">confidence <div class="barwrap" style="width:80px;margin:0 0 0 6px"><div class="bar" style="width:84%"></div></div></div></div>
+              <div class="btnf">Looks right · Save</div>
+            </div>
+            <div class="scr-foot"><span>Today</span><span><b>Log</b></span><span>Progress</span><span>You</span></div>
+          </div></div>
+        </div>
+        <!-- B3 -->
+        <div class="slide">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>8:05</span><span>🎙 hands-free</span></div>
+            <div class="scr-body">
+              <div class="scr-title">Just say it</div>
+              <div class="voicewave"><i style="animation-delay:0s"></i><i style="animation-delay:.1s"></i><i style="animation-delay:.2s"></i><i style="animation-delay:.3s"></i><i style="animation-delay:.15s"></i><i style="animation-delay:.25s"></i></div>
+              <div class="uirow" style="text-align:center"><span class="mini">"Two eggs, toast with butter, black coffee"</span></div>
+              <div class="uirow tight"><div class="flex between"><span>2 eggs</span><span class="mini">156 · 12g P</span></div></div>
+              <div class="uirow tight"><div class="flex between"><span>Toast + butter</span><span class="mini">180 · 4g P</span></div></div>
+              <div class="uirow tight"><div class="flex between"><span>Black coffee</span><span class="mini">2 cal</span></div></div>
+              <div class="btnf">Logged — no menus, no typing</div>
+            </div>
+            <div class="scr-foot"><span>Today</span><span><b>Log</b></span><span>Progress</span><span>You</span></div>
+          </div></div>
+        </div>
+        <!-- B4 -->
+        <div class="slide">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>8:00</span><span>it learns you</span></div>
+            <div class="scr-body">
+              <div class="scr-title">Your usual?</div>
+              <div class="uirow glow" style="border-color:var(--a2)"><div class="flex between"><b>☕ Your usual breakfast</b><span class="pill g">1 tap</span></div>
+                <div class="mini" style="margin-top:5px">Oats, banana, whey · 420 cal · 32g protein</div>
+                <div class="mini" style="margin-top:3px">You've had this 9 of the last 12 mornings</div></div>
+              <div class="uirow tight"><span class="mini">Other recent meals…</span></div>
+              <div class="btnf">Yep — log it</div>
+              <div class="mini" style="text-align:center;margin-top:10px">By week 2, most logging is just confirming predictions.</div>
+            </div>
+            <div class="scr-foot"><span>Today</span><span><b>Log</b></span><span>Progress</span><span>You</span></div>
+          </div></div>
+        </div>
+        <!-- B5 -->
+        <div class="slide">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>9:30pm</span><span>no guilt</span></div>
+            <div class="scr-body">
+              <div class="scr-title">Today</div>
+              <div class="uirow"><div class="flex between"><span class="mini">Protein (the hero)</span><b style="color:var(--good)">128 / 130g</b></div>
+                <div class="barwrap"><div class="bar" style="width:98%"></div></div></div>
+              <div class="uirow"><div class="flex between"><span class="mini">Calories</span><b>1,940</b></div>
+                <div class="mini" style="margin-top:3px">Right in your 1,800–2,100 range — nice.</div></div>
+              <div class="uirow tight" style="text-align:center;border-color:var(--good)"><span class="mini">🔥 6-day streak · a grace day is banked if you slip</span></div>
+              <div class="btnf">You're trending well this week ✓</div>
+            </div>
+            <div class="scr-foot"><span><b>Today</b></span><span>Log</span><span>Progress</span><span>You</span></div>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="scap">
+        <div class="step" id="B-step"></div>
+        <h3 id="B-h"></h3>
+        <p id="B-p"></p>
+        <div class="why" id="B-why"></div>
+        <div class="ctrls">
+          <button onclick="move('B',-1)">‹</button>
+          <button onclick="move('B',1)">›</button>
+          <div class="dots" id="B-dots"></div>
+          <span class="slidecount" id="B-count"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="twocol">
+    <div class="card"><h3>Why this wins</h3>
+      <ul class="tick">
+        <li>Attacks the #1 churn driver in the whole category (logging fatigue)</li>
+        <li>Largest, most dissatisfied user base (MyFitnessPal refugees)</li>
+        <li>Narrowest scope → fastest to ship &amp; validate</li>
+        <li>Protein-first + compassion = instant emotional differentiation</li>
+      </ul>
+    </div>
+    <div class="card"><h3>The risk &amp; the proof point</h3>
+      <ul class="tick cross">
+        <li>"AI calorie app" is crowded (Cal AI, SnapCalorie) — must out-execute on accuracy, retention &amp; the path to breadth</li>
+      </ul>
+      <p class="muted" style="font-size:13.5px;margin-top:10px"><b>Proof point:</b> Logging friction (taps/meal, % days logged) crushes MFP, and retention beats single-feature AI apps.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== WEDGE C ===================== -->
+<section class="view wrap wC" id="wedgeC">
+  <div class="whero">
+    <div class="badgeBig">C</div>
+    <div>
+      <span class="chip a3">WEDGE C</span> <span class="chip">most differentiated</span>
+      <h1 style="font-size:33px;margin:8px 0 2px">Your Coach</h1>
+      <p class="lead" style="font-size:15.5px">Plug in every wearable, get back the one thing none of them give you: <b>the connections between your data</b> — and a clear "do this today." The moat, made the whole product.</p>
+    </div>
+  </div>
+  <div class="flex" style="gap:8px;flex-wrap:wrap;margin-top:6px">
+    <span class="chip">📊 Optimizer Omar</span><span class="chip">Data-curious</span>
+    <span class="chip">Highest ARPU</span><span class="chip">Heaviest build</span>
+  </div>
+
+  <div class="story-shell">
+    <div class="story-stage">
+      <div class="slides" id="C-slides">
+        <!-- C1 -->
+        <div class="slide on">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>9:41</span><span>connect</span></div>
+            <div class="scr-body">
+              <div class="scr-title">Bring your data home</div>
+              <div class="uirow tight"><div class="flex between"><span>⌚ Garmin</span><span class="pill g">connected</span></div></div>
+              <div class="uirow tight"><div class="flex between"><span>🟥 Whoop</span><span class="pill g">connected</span></div></div>
+              <div class="uirow tight"><div class="flex between"><span>💍 Oura</span><span class="pill g">connected</span></div></div>
+              <div class="uirow tight"><div class="flex between"><span>🍎 Apple Health</span><span class="pill v">syncing…</span></div></div>
+              <div class="mini" style="margin-top:8px;text-align:center">3 apps' worth of data, finally in one place.</div>
+              <div class="btnf">Build my unified profile →</div>
+            </div>
+            <div class="scr-foot"><span><b>Today</b></span><span>Trends</span><span>Insights</span><span>You</span></div>
+          </div></div>
+        </div>
+        <!-- C2 -->
+        <div class="slide">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>7:02</span><span>one graph of you</span></div>
+            <div class="scr-body">
+              <div class="scr-title">Your day, unified</div>
+              <div class="ring" style="--p:74%"><span class="big">74</span><span class="mini">readiness</span></div>
+              <div class="flex" style="gap:7px;margin-top:4px">
+                <div class="uirow tight" style="flex:1;text-align:center"><div class="mini">Sleep</div><b>6.4h</b></div>
+                <div class="uirow tight" style="flex:1;text-align:center"><div class="mini">HRV</div><b>↓ 8%</b></div>
+                <div class="uirow tight" style="flex:1;text-align:center"><div class="mini">Protein</div><b>118g</b></div>
+              </div>
+              <div class="uirow tight"><span class="mini">Training · Nutrition · Recovery · Body — one timeline</span></div>
+              <div class="btnf">See what it means →</div>
+            </div>
+            <div class="scr-foot"><span><b>Today</b></span><span>Trends</span><span>Insights</span><span>You</span></div>
+          </div></div>
+        </div>
+        <!-- C3 -->
+        <div class="slide">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>insight</span><span>🔍</span></div>
+            <div class="scr-body">
+              <div class="scr-title">What works for <i>you</i></div>
+              <div class="uirow glow" style="border-color:var(--a3)"><b>Your PRs cluster after good sleep.</b>
+                <div class="mini" style="margin-top:5px">In 8 weeks, 7 of your 9 PRs landed within 2 days of a 7.5h+ night.</div></div>
+              <div class="uirow tight"><div class="flex between"><span class="mini">Late dinners</span><span class="pill o">−11% recovery</span></div></div>
+              <div class="uirow tight"><div class="flex between"><span class="mini">High-protein days</span><span class="pill g">+ next-day strength</span></div></div>
+              <div class="mini" style="margin-top:8px;text-align:center">No other app can see across your silos to find this.</div>
+            </div>
+            <div class="scr-foot"><span>Today</span><span>Trends</span><span><b>Insights</b></span><span>You</span></div>
+          </div></div>
+        </div>
+        <!-- C4 -->
+        <div class="slide">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>7:05</span><span>decision</span></div>
+            <div class="scr-body">
+              <div class="scr-title">Today: hold back</div>
+              <div class="uirow" style="border-color:var(--warn)"><b style="color:var(--warn)">Recovery's down (74).</b>
+                <div class="mini" style="margin-top:4px">Short sleep + HRV dip. Skip the heavy session — do mobility + a Zone-2 walk, and front-load protein.</div></div>
+              <div class="flex" style="gap:8px;margin-top:8px"><span class="pill o">🚶 Zone 2</span><span class="pill g">🍗 protein early</span></div>
+              <div class="mini" style="margin-top:10px">…and the <i>why</i> is always shown, so you trust it.</div>
+              <div class="btnf">Adjust my plan →</div>
+            </div>
+            <div class="scr-foot"><span><b>Today</b></span><span>Trends</span><span>Insights</span><span>You</span></div>
+          </div></div>
+        </div>
+        <!-- C5 -->
+        <div class="slide">
+          <div class="phone"><div class="screen">
+            <div class="sbar"><span>2:15</span><span>🧠 coach</span></div>
+            <div class="scr-body">
+              <div class="scr-title">Your AI coach</div>
+              <div class="uirow tight" style="background:var(--panel2)"><span class="mini">You tend to skip workouts after &lt;6h sleep. Tonight, let's protect your sleep — wind down by 10:30?</span></div>
+              <div class="uirow tight" style="text-align:right"><span class="pill v">Set a reminder</span></div>
+              <div class="uirow tight" style="background:var(--panel2)"><span class="mini">Nice — that's 3 protein-goal days in a row. Your Thursday lifts have been strongest lately. Coincidence? 😏</span></div>
+              <div class="btnf">Coaching that knows your patterns</div>
+            </div>
+            <div class="scr-foot"><span>Today</span><span>Trends</span><span>Insights</span><span><b>Coach</b></span></div>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="scap">
+        <div class="step" id="C-step"></div>
+        <h3 id="C-h"></h3>
+        <p id="C-p"></p>
+        <div class="why" id="C-why"></div>
+        <div class="ctrls">
+          <button onclick="move('C',-1)">‹</button>
+          <button onclick="move('C',1)">›</button>
+          <div class="dots" id="C-dots"></div>
+          <span class="slidecount" id="C-count"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="twocol">
+    <div class="card"><h3>Why this wins</h3>
+      <ul class="tick">
+        <li>Most differentiated — the unification moat IS the product</li>
+        <li>Highest ARPU (data-obsessed users pay for optimization)</li>
+        <li>Rides every wearable instead of competing with them</li>
+        <li>Correlation insights are impossible for single-app rivals to copy</li>
+      </ul>
+    </div>
+    <div class="card"><h3>The risk &amp; the proof point</h3>
+      <ul class="tick cross">
+        <li>Heaviest to build; depends on wearable data; value is harder to demo fast; smaller initial segment</li>
+      </ul>
+      <p class="muted" style="font-size:13.5px;margin-top:10px"><b>Proof point:</b> Users act on the recommendations, and correlation insights drive measurable behavior change.</p>
+      <p class="muted" style="font-size:13px;margin-top:8px">↳ In the recommended plan, this becomes the <b>v1 "moat" layer</b> on top of Wedge A — not the starting point.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== COMPARE ===================== -->
+<section class="view wrap" id="compare">
+  <div class="eyebrow">Side by side</div>
+  <h1>Which wedge first?</h1>
+  <p class="lead">All three share the same engine. The question is which <i>one loop</i> to perfect first — the one that retains the highest-value users with the least build risk.</p>
+
+  <table>
+    <tr><th>Dimension</th><th>A · Strong &amp; Lean</th><th>B · Effortless Nutrition</th><th>C · Your Coach</th></tr>
+    <tr><td><b>Target user</b></td><td>Recomp + GLP-1</td><td>Beginners + MFP refugees</td><td>Quantified-self / biohacker</td></tr>
+    <tr><td><b>Core loop</b></td><td>Lift + eat, unified</td><td>Log food, effortlessly</td><td>Connect + correlate + coach</td></tr>
+    <tr><td><b>Engagement</b></td><td class="dim">Very high (near-daily)</td><td class="dim">High</td><td class="dim">High</td></tr>
+    <tr><td><b>Willingness to pay</b></td><td>High</td><td>Medium</td><td>Very high</td></tr>
+    <tr><td><b>Build effort</b></td><td>●●● Medium-high</td><td class="dim">●● Lowest</td><td>●●●● Highest</td></tr>
+    <tr><td><b>Differentiation</b></td><td>●●●● High (the seam)</td><td>●● Crowded (Cal AI)</td><td>●●●●● Highest (moat)</td></tr>
+    <tr><td><b>Time-to-value</b></td><td>Fast</td><td class="dim">Fastest</td><td>Slowest (needs data)</td></tr>
+    <tr><td><b>Main risk</b></td><td>Two pillars at once</td><td>Commoditized space</td><td>Heavy + data-dependent</td></tr>
+    <tr class="hl"><td><b>Verdict</b></td><td><span class="chip rec">★ Start here</span></td><td><span class="chip a2">Fold its core into A</span></td><td><span class="chip a3">Becomes A's v1 moat</span></td></tr>
+  </table>
+
+  <div class="callout">
+    <h3>The recommendation: it's not either/or — it's a sequence</h3>
+    <p class="muted" style="margin:8px 0 0">Start with <b>Wedge A "Strong &amp; Lean"</b> because it retains the highest-value users and owns the empty gym+kitchen seam. <b>Bake in Wedge B's frictionless-nutrition core</b> (it's half of A anyway), and <b>add Wedge C's intelligence as the v1 "moat" layer</b> once the loop retains and there's enough data to correlate.</p>
+    <div class="flow" style="margin-top:14px">
+      <span class="node" style="border-color:var(--a1)">v0 · Wedge A loop<small>capture + unified dashboard + progress story</small></span>
+      <span class="arr">→</span>
+      <span class="node" style="border-color:var(--a3)">v1 · Wedge C moat<small>wearables + correlations + "what to do today" + AI coach</small></span>
+      <span class="arr">→</span>
+      <span class="node">v2 · expand<small>endurance · biohacker · coach B2B2C</small></span>
+    </div>
+    <p class="muted" style="margin:14px 0 0;font-size:13.5px">The bar to clear before moving from v0 → v1: <b style="color:var(--good)">day-30 retention &gt; 20%</b> for the beachhead cohort (vs. the 3–10% category baseline).</p>
+  </div>
+
+  <p class="footnote">Detail &amp; rationale: <code>03_PRODUCT/04_mvp_and_scope.md</code> · <code>02_USERS/01_personas.md</code> · <code>01_RESEARCH/02_competitor_analysis.md</code>. This prototype visualizes those docs — it is not the product UI, it's a vision aid for choosing the wedge.</p>
+</section>
+
+<!-- ===================== B2B ===================== -->
+<section class="view wrap" id="b2b">
+  <div class="eyebrow">The second act</div>
+  <h1>The B2B dual-engine</h1>
+  <p class="lead">The one thing <b>no sensor can ever measure is what you ate.</b> Nutrition is every hardware giant's structural blind spot — which is why they all partner for it. Our consumer app's food-AI is also the <b>data flywheel</b> for a licensable <b>Nutrition Intelligence API</b>.</p>
+
+  <div class="grid2" style="margin-top:22px">
+    <div class="card">
+      <h3>The flywheel</h3>
+      <div class="fly">
+        <div class="flybox">🏋️ <b>Consumer app</b> (Wedge A)<br><span class="mini">every food photo + every user correction</span></div>
+        <div class="flyarr">↓</div>
+        <div class="flybox"><b>Proprietary labeled dataset</b><br><span class="mini">real meals · real portions · corrected in the wild</span></div>
+        <div class="flyarr">↓</div>
+        <div class="flybox"><b>Best-in-class food + portion model</b><br><span class="mini">owns the hard part: portion estimation</span></div>
+        <div class="flyarr">↓</div>
+        <div class="flybox">🔌 <b>Nutrition Intelligence API</b><br><span class="mini">→ OEMs · telehealth · insurers · giants</span></div>
+        <div class="flyarr">↺ funds more growth → more data → better model</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Who buys it (and the precedent)</h3>
+      <ul class="tick">
+        <li><b>Mid-tier OEMs</b> — Coros, Polar, Amazfit, Wahoo, Suunto, white-label</li>
+        <li><b>Telehealth / GLP-1 platforms</b> — exploding need for protein + food data</li>
+        <li><b>Insurers &amp; corporate wellness</b> — need logging, won't build it</li>
+        <li><b>The giants</b> — as occasional customers, or <b>as acquirers</b></li>
+      </ul>
+      <div class="uirow" style="margin-top:12px"><span class="mini"><b style="color:#fff">Proven model:</b> <b>Passio.ai</b> sells food-vision SDKs B2B today. <b>Firstbeat</b> licensed its analytics to ~77% of the sports-watch market — then <b>Garmin acquired it.</b> That's the template: become the category's brain, then its acquisition target.</span></div>
+      <div class="chip warn" style="margin-top:12px">⚠ Reality check: Garmin (Connect+) &amp; Samsung just added native nutrition in 2026 — so own the <b>hard</b> AI/portion layer, not the commodity barcode DB.</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <h3>The strategic rule</h3>
+    <p class="muted" style="margin:8px 0 0"><b>Sequence, don't parallelize.</b> Build the consumer app first so the data flywheel spins; productize the API once the model is differentiated. This turns the project's biggest <i>technical risk</i> (nutrition accuracy) into its biggest <i>strategic asset</i> (a licensable, acquisition-grade moat) — and gives a second revenue path + a clear exit without diluting the consumer focus.</p>
+    <p class="muted" style="margin:10px 0 0;font-size:13px">Full analysis: <code>01_RESEARCH/07_b2b_ai_api_opportunity.md</code></p>
+  </div>
+</section>
+
+<script>
+  // ---- tab switching ----
+  const views = document.querySelectorAll('section.view');
+  const tabs = document.querySelectorAll('nav.tabs button');
+  function go(id){
+    views.forEach(v=>v.classList.toggle('active', v.id===id));
+    tabs.forEach(t=>{
+      const on = t.dataset.v===id;
+      t.classList.toggle('active', on);
+    });
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  tabs.forEach(t=>t.addEventListener('click',()=>go(t.dataset.v)));
+
+  // ---- carousels ----
+  const stories = {
+    A:{i:0, n:5,
+      step:["Step 1 of 5 · Onboarding","Step 2 of 5 · Capture nutrition","Step 3 of 5 · Capture training","Step 4 of 5 · The daily headline","Step 5 of 5 · Felt progress"],
+      h:["60 seconds to “future you”","Snap your plate, not a database","Log a set without breaking flow","One sentence that fuses everything","This week, you got stronger"],
+      p:["Goal, experience, and a protein target in three taps — then we show the projected payoff (a 100kg bench by September) so the goal is imaginable from minute one.",
+         "A photo returns calories + macros with a confidence read. Protein is the hero number. Low-confidence items (the rice portion) are one tap to fix — ~8 seconds, 2 taps, no menu.",
+         "Today's session is pre-filled from last time with a +2.5kg suggestion. Tap ✓ or say “85 for 8.” The moment you log it, a 3-rep PR auto-celebrates — no PR table to maintain.",
+         "Recovery (from your wearable) + training history + nutrition fuse into a single decision: you're primed, bench is due for a PR, hit 165g protein. The unification moat made tangible.",
+         "A beautiful, shareable recap of volume, PRs, protein and weight trend. Effort becomes felt — and the share is organic acquisition."],
+      why:["<b>Why it matters:</b> Most churn is decided in the first session. We hook with a magic moment and a vision before the user can bounce.",
+           "<b>Why it matters:</b> Manual food logging is the #1 churn driver in the category. Kill it and you've removed the main reason people quit.",
+           "<b>Why it matters:</b> During a set, the UI must demand near-zero attention. Auto-progression removes “what do I do?”; auto-PRs supply the dopamine.",
+           "<b>Why it matters:</b> No competitor produces this sentence — it spans recovery (Whoop's turf), programming (Fitbod's), and nutrition (MFP's) at once.",
+           "<b>Why it matters:</b> This single weekly artifact may be the most retention-positive feature we can build — and it's a growth loop."]
+    },
+    B:{i:0, n:5,
+      step:["Step 1 of 5 · Onboarding","Step 2 of 5 · Photo logging","Step 3 of 5 · Voice logging","Step 4 of 5 · Meal-memory","Step 5 of 5 · No-guilt dashboard"],
+      h:["No spreadsheets. Promise.","Snap it","Just say it","It learns what you eat","Awareness, never judgment"],
+      p:["Goal and eating style in 30 seconds, and the target is a range (1,800–2,100), not a single number you can “fail.” The framing is calm from the first screen.",
+         "Photograph the meal; the AI returns calories + macros with a confidence read. If it looks right, one tap saves it. No searching seventeen near-identical database entries.",
+         "Speak the meal — “two eggs, toast with butter, black coffee” — and it parses into logged items. Speaking is ~3× faster than typing and works hands-free.",
+         "Most people eat 20–30 foods on rotation, so by week two the app predicts your breakfast and offers it as one tap. Logging gets easier the longer you use it — the opposite of MyFitnessPal.",
+         "Protein is the hero metric. Calories show as a range you're “trending well” within. Streaks survive a slip (grace days). No red “you failed” wall — ever."],
+      why:["<b>Why it matters:</b> Guilt and rigidity are silent churn engines. A compassionate frame is a retention feature, not a nicety.",
+           "<b>Why it matters:</b> This is the make-or-break flow. If logging a meal takes under 10 seconds and 3 taps, the habit survives.",
+           "<b>Why it matters:</b> Different context, same goal — remove keystrokes. Voice covers the kitchen, the car, the moments a keyboard loses.",
+           "<b>Why it matters:</b> Meal-memory compounds into a switching cost — the app becomes more yours with every log, and harder to leave.",
+           "<b>Why it matters:</b> Emotional churn is as real as friction churn. Owning the emotional job is the moat MyFitnessPal never built."]
+    },
+    C:{i:0, n:5,
+      step:["Step 1 of 5 · Connect","Step 2 of 5 · Unified view","Step 3 of 5 · Correlations","Step 4 of 5 · Daily decision","Step 5 of 5 · AI coach"],
+      h:["Bring your data home","Your day, unified","What works for you","A clear call, with the why","Coaching that knows your patterns"],
+      p:["One-tap OAuth pulls Garmin, Whoop, Oura, and Apple Health into a single profile — ending the three-dashboards-that-don't-talk problem.",
+         "Training, nutrition, recovery and body data land on one timeline, headlined by a single readiness number. The whole, not the silos.",
+         "The engine surfaces personal correlations no single app can see — e.g., your PRs cluster within two days of 7.5h+ sleep; late dinners cost 11% recovery.",
+         "It turns the data into a decision — “recovery's down, swap the heavy session for Zone 2, front-load protein” — and always shows the reasoning so you trust it.",
+         "An AI coach that knows your patterns nudges at the right moment (“you skip workouts after &lt;6h sleep — protect tonight’s sleep”). Noom-grade psychology at software margins."],
+      why:["<b>Why it matters:</b> We ride the giants' sensors instead of competing with them — the data is the raw material for the moat.",
+           "<b>Why it matters:</b> Unification is the value no single-quadrant incumbent can copy without entering everyone else's turf.",
+           "<b>Why it matters:</b> Cross-silo correlation is the deepest moat — it requires all the data in one place, which is exactly what rivals lack.",
+           "<b>Why it matters:</b> Explainable intelligence beats Garmin/Fitbod black boxes and compounds into reliance and trust.",
+           "<b>Why it matters:</b> Noom proved people pay for psychology — we deliver it without the logging tax and at far better margins."]
+    }
+  };
+
+  function render(key){
+    const s = stories[key];
+    const slides = document.querySelectorAll('#'+key+'-slides .slide');
+    slides.forEach((el,idx)=>el.classList.toggle('on', idx===s.i));
+    document.getElementById(key+'-step').textContent = s.step[s.i];
+    document.getElementById(key+'-h').textContent = s.h[s.i];
+    document.getElementById(key+'-p').textContent = s.p[s.i];
+    document.getElementById(key+'-why').innerHTML = s.why[s.i];
+    document.getElementById(key+'-count').textContent = (s.i+1)+' / '+s.n;
+    const dots = document.getElementById(key+'-dots');
+    dots.innerHTML='';
+    for(let k=0;k<s.n;k++){
+      const d=document.createElement('i');
+      if(k===s.i) d.classList.add('on');
+      d.onclick=()=>{s.i=k;render(key);};
+      dots.appendChild(d);
+    }
+  }
+  function move(key,dir){
+    const s=stories[key];
+    s.i=(s.i+dir+s.n)%s.n;
+    render(key);
+  }
+  ['A','B','C'].forEach(render);
+
+  // keyboard arrows drive whichever wedge view is open
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='ArrowLeft' && e.key!=='ArrowRight') return;
+    const active=document.querySelector('section.view.active');
+    if(!active) return;
+    const map={wedgeA:'A',wedgeB:'B',wedgeC:'C'};
+    const key=map[active.id];
+    if(key) move(key, e.key==='ArrowRight'?1:-1);
+  });
+</script>
+</body>
+</html>

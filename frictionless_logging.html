@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7c5cff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Strong &amp; Lean">
+<title>Strong &amp; Lean — Log Workout</title>
+<style>
+  :root{
+    --bg:#0b0e14;--bg2:#11151f;--panel:#161b27;--panel2:#1c2230;--line:#283044;
+    --txt:#e8edf6;--mut:#9aa6bd;--dim:#6b768c;
+    --a1:#7c5cff;--a2:#23d5ab;--a3:#ff6b9d;--warn:#ffb454;--good:#3ddc84;
+    --grad:linear-gradient(135deg,#7c5cff,#23d5ab);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1100px 600px at 80% -10%,rgba(124,92,255,.18),transparent),
+        radial-gradient(800px 500px at -10% 110%,rgba(35,213,171,.12),transparent),var(--bg);
+       color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:26px 22px 70px}
+  a{color:var(--a2);text-decoration:none}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--a2)}
+  h1{font-size:32px;margin:8px 0 6px;font-weight:850;letter-spacing:-.4px}
+  p.lead{color:var(--mut);font-size:16px;max-width:760px;margin:0}
+  .back{font-size:13px;color:var(--mut)}
+
+  .stage{display:grid;grid-template-columns:300px 1fr;gap:34px;margin-top:26px;align-items:start}
+  @media(max-width:840px){.stage{grid-template-columns:1fr;justify-items:center}}
+
+  /* phone */
+  .phone{width:300px;height:610px;background:#05070c;border-radius:40px;padding:12px;position:relative;
+         box-shadow:0 34px 80px rgba(0,0,0,.6),0 0 0 1px var(--line)}
+  .phone::before{content:"";position:absolute;top:21px;left:50%;transform:translateX(-50%);width:96px;height:6px;background:#1a2030;border-radius:6px;z-index:6}
+  .screen{width:100%;height:100%;background:linear-gradient(180deg,#10141d,#0b0e15);border-radius:30px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .sbar{display:flex;justify-content:space-between;align-items:center;padding:15px 20px 8px;font-size:11px;color:var(--mut);font-weight:600}
+  .body{flex:1;overflow-y:auto;padding:6px 18px 14px}
+  .body::-webkit-scrollbar{width:0}
+  .foot{display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid var(--line);font-size:10px;color:var(--dim)}
+  .foot b{color:var(--a2)}
+
+  .h{font-size:13px;color:var(--mut);font-weight:600}
+  .title{font-size:21px;font-weight:850;margin:2px 0 12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px;margin-bottom:11px}
+  .flex{display:flex;align-items:center;gap:10px}
+  .between{justify-content:space-between}
+  .mut{color:var(--mut)}.mini{font-size:11.5px;color:var(--mut)}
+  .pill{font-size:10px;font-weight:700;padding:2px 9px;border-radius:12px;display:inline-block}
+  .pill.g{background:rgba(61,220,132,.16);color:var(--good)}
+  .pill.v{background:rgba(124,92,255,.18);color:#b9a7ff}
+  .pill.o{background:rgba(255,180,84,.16);color:var(--warn)}
+  .pill.done{background:rgba(35,213,171,.14);color:var(--a2)}
+
+  .bigbtn{background:var(--grad);color:#06251f;border:none;width:100%;padding:16px;border-radius:15px;font-size:17px;font-weight:850;cursor:pointer;transition:.12s;letter-spacing:.2px}
+  .bigbtn:active{transform:scale(.97)}
+  .ghost{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:13px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;width:100%}
+  .ghost:active{transform:scale(.97)}
+
+  .setline{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:11px;margin-bottom:7px;border:1px solid var(--line);background:var(--bg2)}
+  .setline.active{border-color:var(--a2);background:rgba(35,213,171,.06);box-shadow:0 0 0 1px rgba(35,213,171,.3)}
+  .setline.done{opacity:.65}
+  .setn{width:22px;height:22px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--mut)}
+  .setline.done .setn{background:rgba(35,213,171,.18);color:var(--a2)}
+  .setval{font-weight:800;font-size:15px}
+  .target{font-size:11px;color:var(--dim)}
+
+  .stepper{display:flex;align-items:center;gap:6px}
+  .stepper button{width:30px;height:30px;border-radius:9px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);font-size:16px;font-weight:800;cursor:pointer}
+  .stepper button:active{transform:scale(.9)}
+  .stepper .num{min-width:54px;text-align:center;font-weight:850;font-size:18px}
+  .stepper .u{font-size:11px;color:var(--mut)}
+
+  .rpe{display:flex;gap:7px;margin-top:9px}
+  .rpe button{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:11px;padding:9px 4px;font-size:12px;font-weight:700;cursor:pointer}
+  .rpe button:active{transform:scale(.95)}
+  .rpe button.easy:hover{border-color:var(--good)}
+  .rpe button.hard:hover{border-color:var(--warn)}
+
+  /* flick / scroll wheel picker — mouse wheel + touch flick (momentum) + fine settle */
+  .picker{position:relative;height:108px;width:88px;overflow:hidden;border:1px solid var(--line);border-radius:13px;background:var(--bg2)}
+  .picker .band{position:absolute;left:6px;right:6px;top:36px;height:36px;border-top:1px solid rgba(35,213,171,.55);border-bottom:1px solid rgba(35,213,171,.55);background:rgba(35,213,171,.07);border-radius:7px;z-index:1;pointer-events:none}
+  .picker .scroller{position:relative;z-index:2;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;background:transparent;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .picker .scroller::-webkit-scrollbar{display:none}
+  .picker .pad{height:36px}
+  .picker .opt{height:36px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font-weight:800;font-size:17px;color:var(--mut);cursor:pointer;transition:color .12s,font-size .12s}
+  .picker .opt.sel{color:#fff;font-size:23px}
+  .picker .fade{position:absolute;left:0;right:0;height:38px;pointer-events:none;z-index:3}
+  .picker .fade.t{top:0;background:linear-gradient(var(--bg2),rgba(17,21,31,0))}
+  .picker .fade.b{bottom:0;background:linear-gradient(rgba(17,21,31,0),var(--bg2))}
+
+  .ring{width:128px;height:128px;border-radius:50%;margin:14px auto 6px;display:flex;align-items:center;justify-content:center;flex-direction:column;
+        background:conic-gradient(var(--a2) var(--p,0%),#1a2030 0);position:relative}
+  .ring::after{content:"";position:absolute;inset:11px;border-radius:50%;background:#0c0f16}
+  .ring b{position:relative;z-index:2;font-size:30px;font-weight:850}
+  .ring small{position:relative;z-index:2;color:var(--mut);font-size:11px}
+
+  /* celebrate overlay */
+  .celebrate{position:absolute;inset:0;background:rgba(8,11,18,.92);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:10;text-align:center;padding:24px}
+  .celebrate.on{display:flex;animation:fade .3s}
+  .celebrate .trophy{font-size:54px;animation:pop .5s}
+  .celebrate .pr{font-size:22px;font-weight:850;color:var(--good);margin:8px 0 4px}
+  @keyframes pop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .confetti{position:absolute;width:9px;height:14px;top:-20px;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(640px) rotate(540deg);opacity:.2}}
+
+  /* HUD / friction meter */
+  .hud{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;max-width:520px}
+  .hud h3{margin:0 0 4px;font-size:16px}
+  .hud .sub{font-size:13px;color:var(--mut);margin-bottom:14px}
+  .meters{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .meter{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .meter .n{font-size:26px;font-weight:850}
+  .meter .n.you{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .meter .n.old{color:var(--a3)}
+  .meter .l{font-size:11.5px;color:var(--mut);margin-top:2px}
+  .savebar{height:9px;background:#0c1018;border-radius:6px;overflow:hidden;margin:14px 0 6px}
+  .savebar i{display:block;height:100%;background:var(--grad);width:0;transition:width .5s}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .legend span{font-size:11.5px;color:var(--mut);background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:5px 9px}
+  .note{font-size:12.5px;color:var(--dim);margin-top:14px;line-height:1.5}
+  .kbd{font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:5px;padding:1px 6px;background:var(--bg2)}
+  .restartbtn{margin-top:14px;background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:10px;padding:9px 14px;font-size:12.5px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="back"><a href="frictionless_dashboard.html">‹ back to Dashboard</a></div>
+  <div class="eyebrow">Craft demo · the manifesto, made tangible</div>
+  <h1>Log a workout — and watch the friction vanish</h1>
+  <p class="lead">This is the north-star "log a set" interaction from <code>03_PRODUCT/06_deepdive_workout_logging.md</code>, playable. The session is <b>pre-predicted</b>; you just <b>confirm</b>. The app starts your rest timer, queues the next set, adjusts the weight to how you feel, and catches your PRs — so logging is <b>a joy and an afterthought</b>. The meter on the right counts your taps against a typical app's.</p>
+
+  <div class="stage">
+    <div class="phone"><div class="screen">
+      <div class="sbar"><span id="clock">9:41</span><span id="ctx">Iron Works · arrived</span></div>
+      <div class="body" id="screen"><!-- rendered by JS --></div>
+      <div class="foot"><span id="f1"><b>Today</b></span><span id="f2">Log</span><span>Progress</span><span>You</span></div>
+      <div class="celebrate" id="celebrate">
+        <div class="trophy">🏆</div>
+        <div class="pr" id="prText">New PR!</div>
+        <div class="mini" id="prSub"></div>
+        <button class="bigbtn" style="margin-top:18px;max-width:200px" onclick="closeCelebrate()">Let's go 🔥</button>
+      </div>
+    </div></div>
+
+    <div>
+      <div class="hud">
+        <h3>Friction meter <span class="pill v" style="vertical-align:middle">live</span></h3>
+        <div class="sub">The manifesto says friction is measurable. Here it is, counted as you play.</div>
+        <div class="meters">
+          <div class="meter"><div class="n you" id="mYouTaps">0</div><div class="l">your taps this session</div></div>
+          <div class="meter"><div class="n old" id="mOldTaps">0</div><div class="l">typical-app taps for the same</div></div>
+          <div class="meter"><div class="n you" id="mTyped">0</div><div class="l">numbers you typed</div></div>
+          <div class="meter"><div class="n you" id="mDecisions">0</div><div class="l">weight decisions you made</div></div>
+        </div>
+        <div class="savebar"><i id="saveFill"></i></div>
+        <div class="mini" id="saveLabel">Start the session to see the difference.</div>
+        <div class="legend">
+          <span>✓ predicted sets → confirm only</span>
+          <span>🎙 voice fallback</span>
+          <span>⏱ auto rest timer</span>
+          <span>🧠 RPE autoregulates next weight</span>
+          <span>🏆 auto-detected PRs</span>
+        </div>
+        <div class="note">
+          Try it three ways and watch the meter: <b>(1)</b> just tap <b>✓ Log</b> through everything — notice you never type a number or decide a weight. <b>(2)</b> after a set, tap <b>Easy/Hard</b> and see the <i>next</i> suggested weight move. <b>(3)</b> tap <b>🎙 Voice</b> to log hands-free. Keyboard entry exists as a fallback but you'll rarely reach for it.
+          <br><br>Keys: <span class="kbd">Space</span> = confirm set · <span class="kbd">R</span> = restart.
+        </div>
+        <button class="restartbtn" onclick="reset()">↻ Restart demo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Phase 0: localStorage persistence ----------
+const LS_K={SESSION:'sl_active',HISTORY:'sl_history',PRS:'sl_prs'};
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function loadPRs(){return lsGet(LS_K.PRS)||{};}
+function applyPRs(exs){
+  const prs=loadPRs();
+  exs.forEach(e=>{
+    const k=e.name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+    const p=prs[k];if(!p)return;
+    if((p.w||0)>e.topWeight){e.topWeight=p.w;e.repsAtTop=p.r||e.repsAtTop;}
+    else if(p.w===e.topWeight&&(p.r||0)>e.repsAtTop){e.repsAtTop=p.r;}
+  });
+}
+function saveActive(){S._at=Date.now();lsSet(LS_K.SESSION,S);}
+let _done=false;
+function completeSession(){
+  if(_done)return;_done=true;
+  const prs=loadPRs();
+  S.exercises.forEach(e=>{
+    const k=e.name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+    if(!prs[k]||e.topWeight>(prs[k].w||0))prs[k]={w:e.topWeight,r:e.repsAtTop,at:Date.now()};
+  });
+  lsSet(LS_K.PRS,prs);
+  const h=lsGet(LS_K.HISTORY)||[];
+  h.unshift({name:S.name,at:Date.now(),sets:loggedCount(),prs:S.prs.length,
+    vol:S.exercises.reduce((a,e)=>a+e.logged.reduce((b,l)=>b+l.w*l.r,0),0)});
+  if(h.length>100)h.pop();
+  lsSet(LS_K.HISTORY,h);
+  localStorage.removeItem(LS_K.SESSION);
+}
+
+// ---------- model ----------
+function freshSession(){
+  const params = new URLSearchParams(location.search);
+  const exName = params.get('name') ? decodeURIComponent(params.get('name')) : null;
+
+  const baseExercises = [
+    { name:"Bench Press", unit:"kg", restSec:90,
+      topWeight:85, repsAtTop:7,
+      sets:[ {w:85,r:8}, {w:85,r:8}, {w:90,r:5} ],
+      logged:[] },
+    { name:"Incline DB Press", unit:"kg", restSec:75,
+      topWeight:32, repsAtTop:9,
+      sets:[ {w:32,r:10}, {w:32,r:10}, {w:32,r:10} ],
+      logged:[] },
+    { name:"Cable Fly", unit:"kg", restSec:60,
+      topWeight:20, repsAtTop:14,
+      sets:[ {w:22,r:15}, {w:22,r:15} ],
+      logged:[] }
+  ];
+
+  let exercises = baseExercises;
+  let sessionName = "Push Day";
+
+  if (exName) {
+    // Check if it matches one of the base exercises (by name)
+    const already = baseExercises.find(e => e.name.toLowerCase() === exName.toLowerCase());
+    if (!already) {
+      // Inject as first exercise with sensible defaults — user will flick-wheel to their weight
+      exercises = [
+        { name: exName, unit:"kg", restSec:90,
+          topWeight:0, repsAtTop:0,
+          sets:[ {w:20,r:10}, {w:20,r:10}, {w:20,r:10} ],
+          logged:[] },
+        ...baseExercises
+      ];
+    }
+    sessionName = exName + " Session";
+  }
+
+  applyPRs(exercises);
+  return {
+    name: sessionName,
+    started:false,
+    ex:0, set:0,
+    screen:"arrival",
+    youTaps:0, oldTaps:0, typed:0, decisions:0,
+    prs:[],
+    exercises
+  };
+}
+function initSession(){
+  const saved=lsGet(LS_K.SESSION);
+  if(saved&&saved._at&&Date.now()-saved._at<8*3600*1000&&!new URLSearchParams(location.search).get('ex')){
+    // Restore from mid-rest: advance to next set and show logging screen
+    if(saved.screen==='rest'){
+      const ex=saved.exercises[saved.ex];
+      if(saved.set<ex.sets.length-1){ saved.set+=1; }
+      else if(saved.ex<saved.exercises.length-1){ saved.ex+=1; saved.set=0; }
+      saved.screen='logging';
+    }
+    return saved;
+  }
+  return freshSession();
+}
+let S=initSession();
+let restTimer=null, restLeft=0;
+
+// ---------- helpers ----------
+const $=id=>document.getElementById(id);
+function curEx(){return S.exercises[S.ex];}
+function curSet(){return curEx().sets[S.set];}
+function totalSets(){return S.exercises.reduce((a,e)=>a+e.sets.length,0);}
+function loggedCount(){return S.exercises.reduce((a,e)=>a+e.logged.length,0);}
+
+function updateHUD(){
+  $("mYouTaps").textContent=S.youTaps;
+  $("mOldTaps").textContent=S.oldTaps;
+  $("mTyped").textContent=S.typed;
+  $("mDecisions").textContent=S.decisions;
+  const pct = S.oldTaps>0 ? Math.round((1-(S.youTaps/S.oldTaps))*100) : 0;
+  $("saveFill").style.width=Math.max(0,pct)+"%";
+  $("saveLabel").innerHTML = S.oldTaps>0
+    ? "<b style='color:var(--good)'>"+pct+"% fewer taps</b> than a typical app — and <b>"+S.typed+"</b> numbers typed, <b>"+S.decisions+"</b> weight decisions made."
+    : "Start the session to see the difference.";
+}
+
+// PR detection: weight PR or rep-at-weight PR
+function checkPR(e,w,r){
+  let pr=null;
+  if(w>e.topWeight){ pr={type:"Weight PR", txt:w+" "+e.unit+" — new top weight on "+e.name}; e.topWeight=w; e.repsAtTop=r; }
+  else if(w===e.topWeight && r>e.repsAtTop){ pr={type:"Rep PR", txt:r+" reps at "+w+" "+e.unit+" on "+e.name}; e.repsAtTop=r; }
+  if(pr){ const e1rm=Math.round(w*(1+r/30)); pr.sub="Est. 1RM ≈ "+e1rm+" "+e.unit+" · auto-detected, no PR table needed"; S.prs.push(pr); }
+  return pr;
+}
+
+// ---------- actions ----------
+function startSession(){
+  S.started=true; S.screen="logging";
+  S.youTaps+=1;            // 1 tap to start (was offered on arrival)
+  S.oldTaps+=3;            // typical: open app, pick routine, start
+  render();
+}
+// ---------- flick/scroll wheel picker (mouse wheel + touch flick momentum + fine settle) ----------
+// Native overflow scrolling gives momentum-flick on touch/trackpad and wheel on desktop;
+// CSS scroll-snap makes a flick coast and then settle precisely on one value (fine selection).
+function buildPicker(mount, values, current, fmtFn, onChange){
+  const ROW=36;
+  mount.className="picker";
+  mount.innerHTML='<div class="band"></div><div class="scroller"><div class="pad"></div>'+
+    values.map((v,i)=>'<div class="opt" data-i="'+i+'">'+fmtFn(v)+'</div>').join('')+
+    '<div class="pad"></div></div><div class="fade t"></div><div class="fade b"></div>';
+  const scroller=mount.querySelector(".scroller");
+  const opts=[...mount.querySelectorAll(".opt")];
+  let idx=values.indexOf(current); if(idx<0) idx=0;
+  const markSel=i=>opts.forEach((o,k)=>o.classList.toggle("sel",k===i));
+  const centerTo=(i,smooth)=>scroller.scrollTo({top:i*ROW,behavior:smooth?"smooth":"auto"});
+  requestAnimationFrame(()=>{centerTo(idx,false);markSel(idx);});
+  let t=null;
+  scroller.addEventListener("scroll",()=>{
+    const i=Math.max(0,Math.min(values.length-1,Math.round(scroller.scrollTop/ROW)));
+    markSel(i);                              // live highlight as it spins
+    clearTimeout(t);
+    t=setTimeout(()=>{ if(i!==idx){ idx=i; onChange(values[i]); } },80); // commit when settled
+  });
+  opts.forEach(o=>o.addEventListener("click",()=>centerTo(+o.dataset.i,true))); // tap a value to settle on it
+}
+function wRange(p){const lo=Math.max(0,p-25),a=[];for(let v=lo;v<=p+25;v+=2.5)a.push(Math.round(v*2)/2);return a;}
+function rRange(){const a=[];for(let i=1;i<=20;i++)a.push(i);return a;}
+function liveLabels(e){
+  const s=curSet(), lb=document.getElementById("logBtn"), vb=document.getElementById("voiceBtn");
+  if(lb) lb.textContent="✓ Log "+s.w+e.unit+" × "+s.r;
+  if(vb) vb.textContent='🎙 “'+s.w+" for "+s.r+'”';
+}
+function initLoggingPickers(e,s){
+  if(s._sugW===undefined){ s._sugW=s.w; s._sugR=s.r; }   // snapshot the suggestion to detect overrides
+  const wm=document.getElementById("wPicker"), rm=document.getElementById("rPicker");
+  if(wm) buildPicker(wm, wRange(s.w), s.w, v=>String(v), v=>{ s.w=v; liveLabels(e); });
+  if(rm) buildPicker(rm, rRange(), s.r, v=>String(v), v=>{ s.r=v; liveLabels(e); });
+}
+
+function logSet(via){
+  const e=curEx(), s=curSet();
+  // a manual override of the suggested set (via the wheels) counts as one decision
+  if(s._sugW!==undefined && (s.w!==s._sugW || s.r!==s._sugR)) S.decisions+=1;
+  // friction accounting
+  if(via==="voice"){ S.youTaps+=1; }          // one voice action
+  else { S.youTaps+=1; }                        // one confirm tap
+  S.oldTaps+=6;                                 // typical per set: tap+type weight, tap+type reps, tap log, tap timer
+  e.logged.push({w:s.w,r:s.r});
+  const pr=checkPR(e,s.w,s.r);
+  updateHUD();
+  if(pr){ fireCelebrate(pr); }
+  // advance — save AFTER screen transition so restore lands in correct state
+  const lastSetOfEx = S.set>=e.sets.length-1;
+  const lastEx = S.ex>=S.exercises.length-1;
+  if(lastSetOfEx && lastEx){ S.screen="summary"; saveActive(); render(); return; }
+  S.screen="rest";
+  saveActive();
+  startRest(e.restSec);
+  render();
+}
+
+function nextSet(skip){
+  const e=curEx();
+  if(skip){ S.youTaps+=0; } // skipping rest isn't data-entry friction; don't penalize
+  if(S.set>=e.sets.length-1){ S.ex+=1; S.set=0; } else { S.set+=1; }
+  clearInterval(restTimer);
+  S.screen="logging"; render();
+}
+
+function setRPE(kind){
+  // autoregulation: adjust the NEXT set's suggested weight
+  S.youTaps+=1;
+  const e=curEx();
+  let target=null;
+  if(S.set < e.sets.length-1) target=e.sets[S.set+1];       // next set same exercise
+  else if(S.ex < S.exercises.length-1) target=S.exercises[S.ex+1].sets[0]; // first set next exercise
+  let msg="";
+  if(target){
+    if(kind==="easy"){ target.w=Math.round((target.w+2.5)*2)/2; msg="Felt easy → next set nudged to "+target.w+" "+e.unit+" 💪"; }
+    else if(kind==="hard"){ target.w=Math.max(0,Math.round((target.w-2.5)*2)/2); msg="Felt hard → next set eased to "+target.w+" "+e.unit+" — smart call"; }
+    else { msg="Dialed in — holding the plan"; }
+  }
+  document.getElementById("rpeMsg") && (document.getElementById("rpeMsg").textContent=msg);
+  // re-render rest screen to reflect chosen state
+  render(msg);
+}
+
+// ---------- rest timer ----------
+function startRest(sec){
+  // accelerate for the demo so nobody waits 90s
+  restLeft=sec;
+  clearInterval(restTimer);
+  restTimer=setInterval(()=>{
+    restLeft-=3; // demo speed
+    if(restLeft<=0){ restLeft=0; clearInterval(restTimer); nextSet(false); return; }
+    if(S.screen==="rest"){ const r=$("restNum"); if(r){ r.textContent=fmt(restLeft); $("restRing").style.setProperty("--p",(1-restLeft/sec)*100+"%"); } }
+  },140);
+}
+function fmt(s){ const m=Math.floor(s/60), x=s%60; return m+":"+(x<10?"0":"")+x; }
+
+// ---------- celebrate ----------
+function fireCelebrate(pr){
+  $("prText").textContent=pr.type+"!";
+  $("prSub").textContent=pr.txt+" · "+pr.sub;
+  $("celebrate").classList.add("on");
+  // confetti
+  const colors=["#7c5cff","#23d5ab","#ff6b9d","#ffb454","#3ddc84"];
+  for(let i=0;i<28;i++){
+    const c=document.createElement("div"); c.className="confetti";
+    c.style.left=Math.random()*100+"%";
+    c.style.background=colors[i%colors.length];
+    c.style.animationDuration=(1.2+Math.random()*1.2)+"s";
+    c.style.animationDelay=(Math.random()*.3)+"s";
+    $("celebrate").appendChild(c);
+  }
+}
+function closeCelebrate(){
+  const c=$("celebrate"); c.classList.remove("on");
+  c.querySelectorAll(".confetti").forEach(x=>x.remove());
+}
+
+// ---------- render ----------
+function render(rpeMsg){
+  updateHUD();
+  const scr=$("screen");
+  if(S.screen==="arrival"){
+    $("ctx").textContent="Iron Works · arrived";
+    const firstEx = S.exercises[0].name;
+    const isCustom = S.name !== "Push Day";
+    scr.innerHTML=`
+      <div class="title" style="margin-top:30px">Good to see you 👋</div>
+      <div class="card" style="border-color:var(--a2)">
+        <div class="flex between"><b>Start ${S.name}?</b><span class="pill g">88% recovered</span></div>
+        <div class="mini" style="margin-top:7px">${isCustom ? 'Added from Exercise Library. ' : 'We spotted you at Iron Works. '}Your session's ready — loads already set for how recovered you are. You won't have to decide or type a thing.</div>
+      </div>
+      <div class="mini" style="margin:4px 2px 12px">Today · ${S.exercises.length} exercise${S.exercises.length!==1?'s':''} · ${totalSets()} sets · ~${Math.round(totalSets()*2.5)} min</div>
+      <button class="bigbtn" onclick="startSession()">Start ${firstEx} →</button>
+      <div class="mini" style="text-align:center;margin-top:12px">↑ one tap. The app already knew what you'd do.</div>
+    `;
+    $("f1").innerHTML="<b>Today</b>"; $("f2").innerHTML="Log";
+    return;
+  }
+
+  if(S.screen==="logging"){
+    const e=curEx(), s=curSet();
+    $("ctx").textContent=e.name+" · set "+(S.set+1)+"/"+e.sets.length;
+    let setsHtml="";
+    e.sets.forEach((st,i)=>{
+      const done=i<e.logged.length;
+      const active=i===S.set;
+      const val = done ? e.logged[i].w+" × "+e.logged[i].r : st.w+" × "+st.r;
+      setsHtml+=`<div class="setline ${done?'done':''} ${active?'active':''}">
+        <div class="setn">${done?'✓':i+1}</div>
+        <div style="flex:1"><span class="setval">${val}</span> <span class="target">${e.unit}</span></div>
+        ${done?'<span class="pill done">logged</span>':(active?'<span class="pill v">now</span>':'<span class="target">predicted</span>')}
+      </div>`;
+    });
+    scr.innerHTML=`
+      <div class="h">${S.name} · exercise ${S.ex+1}/${S.exercises.length}</div>
+      <div class="title">${e.name}</div>
+      ${setsHtml}
+      <div class="card" style="border-color:var(--a2);margin-top:4px">
+        <div class="flex between" style="margin-bottom:10px"><span class="mini">This set — flick to adjust, nothing to type</span><span class="pill v">auto-filled</span></div>
+        <div class="flex" style="justify-content:center;gap:22px">
+          <div style="text-align:center"><div id="wPicker"></div><div class="mini" style="margin-top:5px">${e.unit}</div></div>
+          <div style="text-align:center"><div id="rPicker"></div><div class="mini" style="margin-top:5px">reps</div></div>
+        </div>
+      </div>
+      <button class="bigbtn" id="logBtn" onclick="logSet('confirm')">✓ Log ${s.w}${e.unit} × ${s.r}</button>
+      <div class="flex" style="gap:9px;margin-top:9px">
+        <button class="ghost" id="voiceBtn" onclick="logSet('voice')">🎙 “${s.w} for ${s.r}”</button>
+      </div>
+      <div class="mini" style="text-align:center;margin-top:10px">flick / scroll the wheels · hold to fine-tune · ~2s</div>
+    `;
+    initLoggingPickers(e,s);
+    $("f1").innerHTML="Today"; $("f2").innerHTML="<b>Log</b>";
+    return;
+  }
+
+  if(S.screen==="rest"){
+    const e=curEx();
+    const justLast = S.set>=e.sets.length-1;
+    const nextLabel = justLast
+        ? (S.ex<S.exercises.length-1 ? "Next: "+S.exercises[S.ex+1].name : "Last one done")
+        : "Next: set "+(S.set+2)+" · "+e.sets[S.set+1].w+e.unit+" × "+e.sets[S.set+1].r;
+    scr.innerHTML=`
+      <div class="h">Rest — auto-started for you</div>
+      <div class="title">Nice. Breathe.</div>
+      <div class="ring" id="restRing" style="--p:0%"><b id="restNum">${fmt(restLeft)}</b><small>rest</small></div>
+      <div class="card"><div class="flex between"><span class="mini">${nextLabel}</span><span class="pill v">queued</span></div></div>
+      <div class="card">
+        <div class="mini" style="margin-bottom:2px">How did that set feel? <span class="target">(optional — tunes your next weight)</span></div>
+        <div class="rpe">
+          <button class="easy" onclick="setRPE('easy')">😎 Easy</button>
+          <button onclick="setRPE('right')">🎯 Right</button>
+          <button class="hard" onclick="setRPE('hard')">😤 Hard</button>
+        </div>
+        <div class="mini" id="rpeMsg" style="margin-top:8px;color:var(--a2)">${rpeMsg||""}</div>
+      </div>
+      <button class="ghost" onclick="nextSet(true)">I'm ready → next set</button>
+      <div class="mini" style="text-align:center;margin-top:9px">Timer runs itself. Walk away — it'll cue you.</div>
+    `;
+    $("f1").innerHTML="Today"; $("f2").innerHTML="<b>Log</b>";
+    return;
+  }
+
+  if(S.screen==="summary"){
+    clearInterval(restTimer);
+    completeSession();
+    const vol=S.exercises.reduce((a,e)=>a+e.logged.reduce((b,l)=>b+l.w*l.r,0),0);
+    const pct = S.oldTaps>0?Math.round((1-(S.youTaps/S.oldTaps))*100):0;
+    let prHtml = S.prs.length
+      ? S.prs.map(p=>`<div class="flex between" style="margin:5px 0"><span class="mini">🏆 ${p.type}</span><b style="font-size:13px">${p.txt.replace(' on '+'',' · ')}</b></div>`).join("")
+      : `<div class="mini">No PRs today — solid, consistent work. That's how PRs get built.</div>`;
+    scr.innerHTML=`
+      <div class="title" style="margin-top:20px">Strongest Push in 6 weeks 💪</div>
+      <div class="card">
+        <div class="flex between"><span class="mini">Sets logged</span><b>${loggedCount()}</b></div>
+        <div class="flex between" style="margin-top:6px"><span class="mini">Volume moved</span><b>${vol.toLocaleString()} kg</b></div>
+        <div class="flex between" style="margin-top:6px"><span class="mini">PRs</span><b style="color:var(--good)">${S.prs.length} 🏆</b></div>
+      </div>
+      <div class="card">${prHtml}</div>
+      <div class="card" style="border-color:var(--a1)">
+        <b style="font-size:14px">You barely touched your phone.</b>
+        <div class="flex between" style="margin-top:8px"><span class="mini">Your taps</span><b>${S.youTaps}</b></div>
+        <div class="flex between" style="margin-top:5px"><span class="mini">A typical app</span><b style="color:var(--a3)">${S.oldTaps}</b></div>
+        <div class="flex between" style="margin-top:5px"><span class="mini">Numbers typed</span><b>${S.typed}</b></div>
+        <div class="flex between" style="margin-top:5px"><span class="mini">Weight decisions</span><b>${S.decisions}</b></div>
+        <div class="mini" style="margin-top:9px;color:var(--good)">${pct}% less friction. Logging was an afterthought — exactly the point.</div>
+      </div>
+      <button class="bigbtn" onclick="reset()">↻ Run it again</button>
+    `;
+    $("f1").innerHTML="Today"; $("f2").innerHTML="Log";
+    return;
+  }
+}
+
+function reset(){ clearInterval(restTimer); closeCelebrate(); _done=false; localStorage.removeItem(LS_K.SESSION); S=freshSession(); render(); }
+
+// keyboard
+document.addEventListener("keydown",e=>{
+  if(e.code==="Space"){
+    e.preventDefault();
+    if(S.screen==="logging") logSet('confirm');
+    else if(S.screen==="arrival") startSession();
+    else if(S.screen==="rest") nextSet(true);
+  }
+  if(e.key==="r"||e.key==="R") reset();
+});
+
+// live clock
+setInterval(()=>{const d=new Date();$("clock").textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});},1000);
+
+render();
+
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>

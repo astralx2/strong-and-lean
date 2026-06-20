@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validation Hub — Strong & Lean</title>
+<style>
+:root{--bg:#0b0e14;--card:#141820;--card2:#1a1f2a;--a1:#7c5cff;--a2:#23d5ab;--a3:#ff6b9d;--good:#3ddc84;--warn:#ffb454;--dim:#6b768c;--txt:#e8ecf4;--bdr:rgba(255,255,255,0.07);--grad:linear-gradient(135deg,#7c5cff,#23d5ab)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;display:flex;flex-direction:column}
+#app{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+#layout{display:flex;flex:1;min-height:0;overflow:hidden}
+/* SIDEBAR */
+#sidebar{width:210px;background:var(--card);border-right:1px solid var(--bdr);display:flex;flex-direction:column;flex-shrink:0;min-height:0;overflow-y:auto}
+.sb-head{padding:14px 16px 8px;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--bdr)}
+.p-item{padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--bdr);transition:background .12s}
+.p-item:hover{background:var(--card2)}
+.p-item.active{background:rgba(124,92,255,.15);border-left:3px solid var(--a1);padding-left:13px}
+.p-name{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-meta{font-size:11px;color:var(--dim);margin-top:2px}
+.seg-tag{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;margin-right:4px}
+.seg-ryan{background:rgba(124,92,255,.2);color:var(--a1)}
+.seg-grace{background:rgba(35,213,171,.15);color:var(--a2)}
+.seg-other{background:rgba(107,118,140,.15);color:var(--dim)}
+.add-p-btn{margin:10px 14px;padding:9px;background:rgba(124,92,255,.1);border:1px dashed rgba(124,92,255,.35);border-radius:8px;cursor:pointer;text-align:center;font-size:12px;color:var(--a1);font-weight:700;transition:background .12s;flex-shrink:0}
+.add-p-btn:hover{background:rgba(124,92,255,.2)}
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.tabs-bar{display:flex;padding:0 20px;background:var(--card);border-bottom:1px solid var(--bdr);gap:2px;flex-shrink:0}
+.tab{padding:12px 14px;font-size:13px;font-weight:600;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;white-space:nowrap}
+.tab:hover{color:var(--txt)}
+.tab.active{color:var(--a1);border-bottom-color:var(--a1)}
+.content{flex:1;overflow-y:auto;padding:20px 24px;min-height:0}
+/* BLOCKS */
+.block{background:var(--card);border-radius:12px;padding:18px 20px;margin-bottom:14px;border:1px solid var(--bdr)}
+.block-hd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.block-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--a2)}
+.block-sub{font-size:11px;color:var(--dim);margin-bottom:14px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.ba{background:rgba(124,92,255,.2);color:var(--a1)}
+.bb{background:rgba(35,213,171,.15);color:var(--a2)}
+.bc{background:rgba(255,107,157,.15);color:var(--a3)}
+.bs{background:rgba(255,180,84,.15);color:var(--warn)}
+/* QUESTIONS */
+.q{margin-bottom:18px}
+.q-label{font-size:13px;font-weight:600;margin-bottom:6px;line-height:1.5}
+.q-note{font-size:11px;color:var(--dim);margin-bottom:7px;font-style:italic}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px}
+.chip{padding:5px 9px;border-radius:16px;background:var(--card2);border:1px solid var(--bdr);font-size:11px;cursor:pointer;color:var(--dim);transition:all .12s;line-height:1.4}
+.chip:hover{border-color:var(--a1);color:var(--txt);background:rgba(124,92,255,.08)}
+.chip.sel{border-color:var(--a1);color:var(--a1);background:rgba(124,92,255,.12)}
+textarea{width:100%;background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:9px 11px;color:var(--txt);font-size:13px;font-family:inherit;resize:vertical;min-height:64px;line-height:1.5;transition:border .12s}
+textarea:focus{outline:none;border-color:var(--a1)}
+textarea::placeholder{color:var(--dim)}
+/* RADIO OPTS */
+.ropts{display:flex;flex-wrap:wrap;gap:5px}
+.ropt{padding:6px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--bdr);font-size:12px;cursor:pointer;transition:all .12s}
+.ropt:hover{border-color:var(--a1)}
+.ropt.sel{background:rgba(124,92,255,.15);border-color:var(--a1);color:var(--a1);font-weight:600}
+/* CHECKBOXES */
+.chk-grp{display:flex;flex-direction:column;gap:5px}
+.chk-item{display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 8px;border-radius:6px;transition:background .1s}
+.chk-item:hover{background:var(--card2)}
+.chk-item input{width:15px;height:15px;accent-color:var(--a1);cursor:pointer;flex-shrink:0}
+.chk-item label{font-size:12px;cursor:pointer}
+/* LIKERT */
+.likert-wrap{display:flex;align-items:center;gap:10px}
+.likert-lbl{font-size:10px;color:var(--dim);width:90px;line-height:1.3}
+.likert-lbl.r{text-align:right}
+.likert-row{display:flex;gap:5px}
+.lk{width:34px;height:34px;border-radius:50%;background:var(--card2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;transition:all .12s}
+.lk:hover{border-color:var(--a1)}
+.lk.sel{background:var(--a1);border-color:var(--a1);color:#fff}
+/* TIER BUTTONS */
+.tier-row{display:flex;gap:6px;flex-wrap:wrap}
+.tier-btn{padding:5px 11px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .12s}
+.tg{background:rgba(61,220,132,.1);color:var(--good);border-color:rgba(61,220,132,.2)}
+.tg.sel{background:var(--good);color:#0b0e14}
+.ty{background:rgba(255,180,84,.1);color:var(--warn);border-color:rgba(255,180,84,.2)}
+.ty.sel{background:var(--warn);color:#0b0e14}
+.tb{background:rgba(124,92,255,.1);color:var(--a1);border-color:rgba(124,92,255,.2)}
+.tb.sel{background:var(--a1);color:#fff}
+.tw{background:rgba(107,118,140,.1);color:var(--dim);border-color:rgba(107,118,140,.2)}
+.tw.sel{background:var(--dim);color:#fff}
+/* VERDICT */
+.vrow{display:flex;gap:6px;flex-wrap:wrap}
+.vbtn{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .12s}
+.vyes{background:rgba(61,220,132,.1);color:var(--good);border-color:rgba(61,220,132,.2)}
+.vyes.sel{background:var(--good);color:#0b0e14}
+.vmix{background:rgba(255,180,84,.1);color:var(--warn);border-color:rgba(255,180,84,.2)}
+.vmix.sel{background:var(--warn);color:#0b0e14}
+.vno{background:rgba(255,107,157,.1);color:var(--a3);border-color:rgba(255,107,157,.2)}
+.vno.sel{background:var(--a3);color:#fff}
+/* SAVE BAR */
+.save-bar{padding:10px 20px;background:var(--card);border-top:1px solid var(--bdr);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.save-btn{padding:9px 22px;background:var(--a1);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;color:#fff;border:none;transition:opacity .15s}
+.save-btn:hover{opacity:.85}
+.save-status{font-size:11px;color:var(--a2)}
+.export-btn{margin-left:auto;padding:8px 16px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--txt);transition:all .12s}
+.export-btn:hover{border-color:var(--a2);color:var(--a2)}
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:200}
+.modal{background:var(--card);border-radius:16px;padding:28px;width:360px;border:1px solid var(--bdr)}
+.modal h3{font-size:16px;margin-bottom:16px}
+.modal input,.modal select{width:100%;background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:9px 12px;color:var(--txt);font-size:13px;font-family:inherit;margin-bottom:10px}
+.modal input:focus,.modal select:focus{outline:none;border-color:var(--a1)}
+.modal select option{background:var(--card2)}
+.mactions{display:flex;gap:8px;margin-top:4px}
+.mbtn{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none}
+.mok{background:var(--a1);color:#fff}
+.mcancel{background:var(--card2);color:var(--dim)}
+/* EMPTY STATE */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;color:var(--dim);text-align:center}
+.empty .icon{font-size:48px}
+.empty h3{font-size:18px;color:var(--txt)}
+.empty p{font-size:13px;max-width:280px;line-height:1.6}
+/* PROFILE CARD */
+.prof-card{background:linear-gradient(135deg,rgba(124,92,255,.1),rgba(35,213,171,.05));border:1px solid rgba(124,92,255,.2);border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px}
+.prof-av{width:42px;height:42px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#fff;flex-shrink:0}
+.prof-info .pn{font-size:15px;font-weight:700}
+.prof-info .pm{font-size:11px;color:var(--dim);margin-top:2px}
+.prof-edit{margin-left:auto;padding:5px 11px;background:transparent;border:1px solid var(--bdr);border-radius:6px;color:var(--dim);font-size:11px;cursor:pointer;transition:all .12s}
+.prof-edit:hover{border-color:var(--a1);color:var(--a1)}
+/* SCORE SUMMARY */
+.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.score-box{background:var(--card2);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--bdr)}
+.score-box .sbl{font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.score-box .sbv{font-size:18px;font-weight:800}
+/* SURVEY NUMBER */
+.num-inp{background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:8px 12px;color:var(--txt);font-size:13px;font-family:inherit;width:110px}
+.num-inp:focus{outline:none;border-color:var(--a1)}
+/* DIVIDER */
+.hdiv{height:1px;background:var(--bdr);margin:14px 0}
+/* ANALYSIS TABLE */
+.atable{width:100%;border-collapse:collapse}
+.atable td,.atable th{padding:8px 10px;border:1px solid var(--bdr);font-size:12px;vertical-align:top}
+.atable th{background:var(--card2);font-weight:700;font-size:11px;color:var(--dim);text-transform:uppercase}
+.atable td textarea{min-height:48px;font-size:11px}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+
+<script>
+// ==================== STATE ====================
+const SK = 'val_hub_v2';
+let S = { participants:[], currentId:null, tab:'interview' };
+
+function load(){ try{ const r=localStorage.getItem(SK); if(r) S=JSON.parse(r); }catch(e){} }
+function persist(){ localStorage.setItem(SK,JSON.stringify(S)); }
+function getCurrent(){ return S.participants.find(p=>p.id===S.currentId)||null; }
+function getField(section,key,fallback=''){
+  const p=getCurrent(); if(!p) return fallback;
+  return (p[section]&&p[section][key]!==undefined)?p[section][key]:fallback;
+}
+function setField(section,key,val){
+  const p=getCurrent(); if(!p) return;
+  if(!p[section]) p[section]={};
+  p[section][key]=val;
+}
+
+// ==================== INTERVIEW DATA ====================
+const IBLOCKS = [
+  { id:'b0', title:'Block 0 — Warm-up & Framing', sub:'3 min · Consent, set "no right answers" tone', badge:null,
+    qs:[
+      { key:'b0_consent', label:'Consent & recording confirmed?',
+        chips:['✓ Verbal consent on tape','✓ Consent given, notes only (no recording)','Participant declined recording — notes only'] },
+      { key:'b0_opener', label:'Opening: "What does a normal training week look like for you right now?"',
+        chips:['Lifts 4–5x/week, mostly compound movements','Trains 3x/week, mixing cardio + weights','CrossFit / HIIT 4x per week','Home gym, flexible schedule','Gym mornings before work','Strength + some cardio, no real structure'] }
+    ]
+  },
+  { id:'b1', title:'Block 1 — Their Real Routine', sub:'6 min · Context, no hypotheses yet', badge:null,
+    qs:[
+      { key:'b1_routine', label:'Q1. Walk me through a typical training week — what, when, where?',
+        chips:['Push/pull/legs 5x/week','Upper/lower split 4x/week','Powerlifting program (SBD focus)','Bodybuilding isolation work','Commercial gym','Home gym — limited equipment','CrossFit box','Random / no fixed program'] },
+      { key:'b1_eating', label:'Q2. Are you doing anything deliberate with food right now?',
+        chips:['Tracking protein only — rough ~180g/day target','Full IIFYM — all macros daily','Just "eating clean," no tracking','Calorie deficit, tracking on and off','High protein, intuitive eating otherwise','Used to track but stopped — too much effort','GLP-1 reduced appetite, struggling to hit protein','Not tracking at all right now'] },
+      { key:'b1_goal', label:'Q3. What are you actually trying to achieve over the next few months?',
+        chips:['Recomp — lose fat while gaining muscle','Build strength on main lifts','Get lean while keeping muscle','Recover strength lost during a diet','Muscle preservation while on GLP-1','Complete a specific program cycle','Look better — less specific about numbers'] }
+    ]
+  },
+  { id:'b2', title:'Block 2 — Last-Time Stories', sub:'12 min · The behavioral bedrock — MOST IMPORTANT BLOCK', badge:'Bets A + B', badgeClass:'ba',
+    qs:[
+      { key:'b2_last_workout', label:'Q4. Think about the LAST workout. Walk me through exactly what you tapped, wrote, or tracked.',
+        note:'Listen for: friction in context, sweaty hands, between sets, anything they meant to log but didn\'t.',
+        chips:['Opened Hevy/Strong mid-set — annoying with chalk','Logged each set as it happened, no friction','Took phone out between every set','Logged from memory after the session','Forgot to log 2–3 exercises','Didn\'t log at all — "I know my numbers"','Apple Watch + app — semi-synced','Paper notepad at the gym'] },
+      { key:'b2_last_meal', label:'Q5. The LAST meal you tracked — walk me through exactly what you did.',
+        note:'How long did it take? What happened when it was a mixed meal / eating out?',
+        chips:['Searched each ingredient separately — 5+ minutes','Couldn\'t find the right food, picked closest','Barcode scan — fast for packaged food','Had a restaurant meal, gave up logging it','Estimated portions, felt unsure','Used a saved meal from yesterday','Didn\'t track it — only log some days','AI photo app — worked okay-ish'] },
+      { key:'b2_no_log', label:'Q6. When was the last time you DIDN\'T log something you\'d meant to? What happened?',
+        chips:['End of day — forgot entirely','Restaurant meal — too hard to estimate','Was with people — felt weird logging','Had a snack, just didn\'t bother','Already hit my protein, stopped caring','One missed day became a week','Homemade food — nothing accurate in the DB'] },
+      { key:'b2_apps', label:'Q7. Show me your apps — walk me through each one (screen share or live).',
+        note:'Count disconnected apps. Note which actually talk to each other (usually none = Bet B signal).',
+        chips:['Hevy + MyFitnessPal + Apple Health = 3 siloed','Strong + Cronometer + Oura = 3+, no real sync','Just one app — does workouts but not food','Hevy + Google Sheet for nutrition','Paper log + no food tracking','Garmin + MFP — calories shown but not truly connected','1 app that does it all (rare — which one?)'] },
+      { key:'b2_combine', label:'Q8. Have you ever tried to see your training AND eating together in one place?',
+        note:'Past-tense and concrete. A shrug here is a REAL Bet B invalidate signal — record it honestly.',
+        chips:['Yes — built a spreadsheet to combine them','Tried Apple Health as a hub, fell short','Never tried — live in different mental buckets','Thought about it but never did','Used MFP + Garmin integration — basic but something','I\'d love that but no idea how','Shrug — don\'t really think about them together'] }
+    ]
+  },
+  { id:'b3', title:'Block 3 — Where It Breaks', sub:'8 min · Friction & churn', badge:'Bet A', badgeClass:'ba',
+    qs:[
+      { key:'b3_annoying', label:'Q9. What\'s the MOST annoying part of keeping track of all this?',
+        chips:['Searching for food — especially restaurants/mixed meals','Logging mid-workout with sweaty/chalky hands','Forgetting by end of day — lost the details','Apps don\'t talk to each other — double entry','Estimating portions — always feels like guessing','Too many taps to log one food item','Nothing is really annoying — it\'s fine','Search results inaccurate / tons of duplicates'] },
+      { key:'b3_quit', label:'Q10. Have you ever QUIT a fitness/food app? Tell me the story of the one you quit hardest.',
+        note:'Probe: "Was it that it stopped working, or that you stopped wanting to?" — separate friction-churn from motivation-churn.',
+        chips:['Stopped logging food — too tedious after a few weeks','App got too complex / feature-bloated','Life got busy, fell out of habit, never came back','Hit my goal, didn\'t feel I needed it','Switched to an app that felt faster','Inaccurate data made me distrust it','Streak broke, felt like a failure, quit entirely'] },
+      { key:'b3_workaround', label:'Q11. Have you ever built your OWN workaround because apps didn\'t cut it?',
+        note:'🟢 HARD SIGNAL if YES. Get a screenshot if they\'ll share.',
+        chips:['Yes — Google Sheet to track all my lifts','Yes — Notes app for quick mid-workout logging','Yes — whiteboard at home gym with PRs','Yes — spreadsheet combining food + weight + workouts','Yes — voice memo right after training','No — just accepted the gaps','No workaround — I just track less'] }
+    ]
+  },
+  { id:'b4', title:'Block 4 — Motivation & Felt Progress', sub:'7 min · What keeps them going / Bet C', badge:'Bet C', badgeClass:'bc',
+    qs:[
+      { key:'b4_consistent', label:'Q12. Think back to a stretch when you were REALLY CONSISTENT. What kept you going?',
+        chips:['Seeing the scale move right','PRs — adding weight every session','Had a training partner / accountability','Had a deadline (event, holiday, wedding)','Progress photos — visible change','Routine just became automatic habit','Coach or program structure kept me on track'] },
+      { key:'b4_fell_off', label:'Q13. And a time you fell off — what happened FIRST?',
+        chips:['Invisible progress — stopped seeing results','Life event disrupted the routine','All-or-nothing collapse — one bad week → month','Novelty wore off, stopped being interesting','Injury forced a break, never fully resumed','Lost my training partner','Logging became a chore → then dropped training too'] },
+      { key:'b4_progress', label:'Q14. When you\'ve made real progress, how did you KNOW — and did you show anyone?',
+        chips:['PR on squat/bench/deadlift — objective proof','Progress photos side by side','Clothes fitting differently','Comments from people around them','Felt stronger in daily life','Body weight moving consistently over weeks','Posted to Instagram/Reddit — reaction was the signal'] },
+      { key:'b4_streaks', label:'Q15. How do you feel about streaks and daily checkmarks — HONESTLY?',
+        chips:['Like them but dread breaking them','I game streaks — log something fake to keep it alive','Hate streaks — one missed day feels like failure','Streaks feel punitive more than motivating','I don\'t even look at them','Helped early on, don\'t need them now','Genuinely like them — keep me accountable'] }
+    ]
+  },
+  { id:'b5', title:'Block 5 — The Magic Wand', sub:'2 min · Stated direction-finder (weaker evidence — cross-check against behavior)', badge:null,
+    qs:[
+      { key:'b5_wand', label:'Q16. If you had a magic wand and could fix ONE thing about how you track — what would it be?',
+        note:'Then probe: "And what stops that from happening today?"',
+        chips:['Make food logging instant — just take a photo','Auto-track my workouts without me doing anything','One app that does everything — stop switching','Know my ACTUAL protein intake, not a guess','See how training and diet affect each other','Never have to search for a food item again','Pre-fill everything based on my patterns'] }
+    ]
+  },
+  { id:'b6', title:'Block 6 — Concept Reaction', sub:'5 min · NOW mention the idea. Hunt objections, not praise.', badge:'Switch + $', badgeClass:'bs',
+    qs:[
+      { key:'b6_pitch_note', label:'Pitch delivered?', note:'Say: "Imagine an app where you photo your food and it handles protein, pre-fills your workout and catches PRs, and every Sunday shows you a story of how you\'re getting stronger and leaner — you barely touch it."',
+        chips:['✓ Pitch delivered, showed frictionless_logging.html','✓ Pitch delivered, description only','✓ Showed nutrition prototype too'] },
+      { key:'b6_critique', label:'Q19. Be BRUTAL — what\'s wrong with this? Where would it fall apart for YOU?',
+        chips:['AI food accuracy — I\'d never trust a guess','I\'d have to re-enter all my Hevy/MFP history — not worth it','I already have a system that works well enough','Privacy — don\'t want location tracking (gym detection)','I mostly eat the same things — photo logging isn\'t my main need','What if the AI is wrong and I don\'t notice?','Don\'t need the progress story — I just track numbers'] },
+      { key:'b6_switch', label:'Q20. What would have to be true for you to ACTUALLY move off your current app to this?',
+        chips:['Significantly faster than what I use','Import my full history from Hevy/MFP — I won\'t re-enter','Free or cheaper than what I pay now','AI food accuracy > 90% on real meals','Replaces 2–3 apps I use now','Recommendation from someone I trust','Try for 2 weeks and see if it saves time'] },
+      { key:'b6_data', label:'Q21. Your history in [current app] — would you move it, re-enter it, or leave it?',
+        chips:['Need an import — years of data too valuable to lose','Start fresh — history isn\'t that important to me','Run both apps in parallel for a while','If CSV export/import exists, I\'d use it','Wouldn\'t switch — my history is the whole point','Accept losing old data for a much better app'] },
+      { key:'b6_ai_photo', label:'Q22. It reads your meal from a photo and estimates protein/calories. Gut reaction?',
+        chips:['Want it now — exactly what I need','Interested but skeptical about accuracy on mixed meals','Use it for simple meals, not complex ones','Want to be able to correct it easily','If it gets my usual meals right, I\'d trust it over time','Still skeptical — would manually correct anyway','Don\'t care about photo logging'] },
+      { key:'b6_gym_detect', label:'Q23. It notices you\'ve arrived at the gym and offers to start your workout. Helpful or creepy?',
+        chips:['Helpful — I\'d love a prompt when I arrive','Helpful IF I can turn it off anytime','Depends — needs to be configurable','Neutral — I already open the app when I arrive','Slightly creepy — don\'t love location tracking','Creepy — no location tracking please'] },
+      { key:'b6_money', label:'Q24. You pay $X for [app]. Something like this would be $10–20/month. Honest reaction?',
+        note:'Anchor to what they already spend. Real spend predicts real spend.',
+        chips:['I\'d pay if it replaced 2 apps I already pay for','More than I pay now — hard to justify without trying','$10 yes, $20 is a stretch','I only use free apps — wouldn\'t pay','If it saves me time every day, that\'s cheap','I\'d pay a year upfront for a discount','What\'s the free tier? I need to try first'] }
+    ]
+  },
+  { id:'b7', title:'Block 7 — Wrap & Referral', sub:'2 min · Close and snowball', badge:null,
+    qs:[
+      { key:'b7_missed', label:'Q17. Anything I should have asked but didn\'t? Anything I\'m clearly not getting?',
+        chips:['No — covered everything','Didn\'t ask about sleep tracking — crucial for me','Didn\'t ask about body weight / scale integration','The social/accountability angle','Injury management — tracking around limitations','Nutrition timing around workouts'] },
+      { key:'b7_referral', label:'Q18. Who else do you know who trains seriously / is on a GLP-1 and obsessive about tracking? Can you intro me?',
+        chips:['Yes — referring 1–2 people','Maybe — will think about it','Not really my circle','Shared the survey link','Introduced me to their training partner'] }
+    ]
+  }
+];
+
+// ==================== SCORING SECTION ====================
+// Appended after blocks in renderInterview()
+
+// ==================== SURVEY DATA ====================
+// Sections with question type: 'radio'|'check'|'likert'|'text'|'number'
+const SSECTIONS = [
+  { title:'Section 0 — Screener & Segment', sub:'Run as a pre-qualify check before booking the interview',
+    qs:[
+      { key:'s1', label:'S1. In a typical week, how many days do you do strength / resistance training?',
+        type:'radio', opts:['0','1–2','3','4–5','6–7'], note:'Branch: 0 → out of segment. ≥3 → Recomp-Ryan lane.' },
+      { key:'s2', label:'S2. Main goal right now?', type:'radio',
+        opts:['Build muscle / get stronger','Build muscle AND stay lean (recomp)','Lose fat while keeping muscle','Lose weight','General health / maintenance','Endurance / sport'] },
+      { key:'s3', label:'S3. Currently on or recently tapered off a GLP-1? (optional)',
+        type:'radio', opts:['Yes, currently','Recently tapered off','No','Prefer not to say'], note:'Yes/Recently → GLP-1-Grace lane.' },
+      { key:'s4', label:'S4. How long training consistently?',
+        type:'radio', opts:['<6 months','6–18 months','1.5–3 years','3+ years'] }
+    ]
+  },
+  { title:'Section 1 — Current App Stack & Spend', sub:'Informs: Bet B fragmentation; WTP baseline; competitor lock-in',
+    qs:[
+      { key:'q1', label:'Q1. Which apps/tools do you use? (check all)',
+        type:'check', opts:['Hevy','Strong','MyFitnessPal','Cronometer','Cal AI / SnapCalorie','Apple Health / Fitness','Garmin / Strava','Whoop','Oura','Fitbit','Notebook / Notes / Spreadsheet','None'] },
+      { key:'q2', label:'Q2. How many SEPARATE apps do you open in a normal week for training + nutrition + body data?',
+        type:'radio', opts:['0','1','2','3','4+'], note:'Bet B core metric. ≥3 = fragmented stack.' },
+      { key:'q3', label:'Q3. Do any of your current apps talk to each other / share data the way you want?',
+        type:'radio', opts:['Yes, fully','Somewhat','No — they\'re siloed','Never thought about it'] },
+      { key:'q4', label:'Q4. How much do you pay per month total for fitness/nutrition apps or coaching?',
+        type:'radio', opts:['$0','$1–9','$10–19','$20–39','$40+'], note:'WTP anchor — best predictor of future willingness to pay.' }
+    ]
+  },
+  { title:'Section 2 — Logging Behavior & Friction', sub:'Informs: Bet A — the load-bearing bet',
+    qs:[
+      { key:'q5', label:'Q5. In the last 7 days, how many days did you log your food / protein?',
+        type:'radio', opts:['0','1–2','3–4','5–6','7'] },
+      { key:'q6', label:'Q6. In the last 7 days, how many days did you log your workouts?',
+        type:'radio', opts:['0','1–2','3–4','5–6','7'], note:'Q5 vs Q6 gap = food-vs-workout friction asymmetry.' },
+      { key:'q7', label:'Q7. Have you ever STOPPED using a food/workout tracking app you\'d been using regularly?',
+        type:'radio', opts:['Yes','No'] },
+      { key:'q8', label:'Q8. (If yes) What was the main reason you stopped?',
+        type:'radio', opts:['Logging was too tedious / time-consuming','I lost motivation generally','Hit my goal / didn\'t need it','Too expensive','Inaccurate / frustrating','Life got busy','Other'], note:'THE Bet-A linchpin. % choosing tedious/frustrating = friction-driven churn share.' },
+      { key:'q9', label:'Q9. "Manually logging food is one of the most tedious parts of tracking my fitness."',
+        type:'likert', lmin:'Strongly disagree', lmax:'Strongly agree' },
+      { key:'q10', label:'Q10. "I often skip logging because it\'s too much effort in the moment."',
+        type:'likert', lmin:'Strongly disagree', lmax:'Strongly agree' },
+      { key:'q11', label:'Q11. Which is the BIGGEST friction in tracking for you? (pick one)',
+        type:'radio', opts:['Searching/entering foods','Logging mixed meals / eating out / homemade','Remembering to log at all','Entering sets/reps/weights mid-workout','Nothing — it\'s fine for me'] },
+      { key:'q12', label:'Q12. Have you ever built your OWN workaround (spreadsheet, Notes, whiteboard) because apps didn\'t cut it?',
+        type:'radio', opts:['Yes, currently use one','Did in the past','No'], note:'Hard behavioral signal — workaround-builders are your truest believers.' }
+    ]
+  },
+  { title:'Section 3 — The Three Bets', sub:'Informs: A / B / C go-no-go. Likert 1–5.',
+    qs:[
+      { key:'q13', label:'Q13. "If logging my food took under 10 seconds and one tap, I\'d do it far more consistently." [Bet A]',
+        type:'likert', lmin:'Strongly disagree', lmax:'Strongly agree' },
+      { key:'q14', label:'Q14. "I wish my workouts, nutrition, and recovery lived in ONE place instead of separate apps." [Bet B]',
+        type:'likert', lmin:'Strongly disagree', lmax:'Strongly agree' },
+      { key:'q15', label:'Q15. "Honestly, I\'m FINE having them in separate apps — I don\'t need them combined." [Bet B reverse ↑ high = weakens Bet B]',
+        type:'likert', lmin:'Strongly disagree', lmax:'Strongly agree' },
+      { key:'q16', label:'Q16. "What keeps me going is FEELING and SEEING real progress, more than hitting daily streaks." [Bet C]',
+        type:'likert', lmin:'Strongly disagree', lmax:'Strongly agree' },
+      { key:'q17', label:'Q17. "Daily streaks and checkmarks are a big part of why I keep tracking." [Bet C counter — if both Q16+Q17 high = mixed]',
+        type:'likert', lmin:'Strongly disagree', lmax:'Strongly agree' },
+      { key:'q18', label:'Q18. "I think of myself as \'someone who trains\' — it\'s part of my identity, not just a goal." [Bet C identity]',
+        type:'likert', lmin:'Strongly disagree', lmax:'Strongly agree' }
+    ]
+  },
+  { title:'Section 4 — Protein-First Resonance', sub:'Does protein-first framing land, or is it niche?',
+    qs:[
+      { key:'q19', label:'Q19. When tracking nutrition, what do you focus on MOST? (pick one)',
+        type:'radio', opts:['Protein first','Total calories','All macros equally','I don\'t track nutrition numbers','Something else'] },
+      { key:'q20', label:'Q20. "Hitting my protein target matters MORE to me than hitting an exact calorie number."',
+        type:'likert', lmin:'Strongly disagree', lmax:'Strongly agree' },
+      { key:'q21a', label:'Q21a. [GLP-1 only] "Since starting the medication, getting enough protein has been a real challenge."',
+        type:'likert', lmin:'Strongly disagree', lmax:'Strongly agree', note:'Show only if S3 = Yes/Recently.' },
+      { key:'q21b', label:'Q21b. [GLP-1 only] "I\'m worried about losing muscle along with fat."',
+        type:'likert', lmin:'Strongly disagree', lmax:'Strongly agree', note:'Show only if S3 = Yes/Recently.' }
+    ]
+  },
+  { title:'Section 5 — AI & Auto-Detection', sub:'Informs: trust/accuracy risk; helpful-vs-creepy line',
+    qs:[
+      { key:'q22', label:'Q22. An app that reads your meal from a PHOTO and estimates protein/calories — your gut reaction?',
+        type:'radio', opts:['Want it now','Interested but worried about accuracy','Skeptical it\'d work','Don\'t want it'], note:'"Interested but worried" sizes the trust gap the tech spike must close.' },
+      { key:'q23', label:'Q23. An app that NOTICES you\'ve arrived at the gym and offers to start your workout — helpful or creepy?',
+        type:'radio', opts:['Helpful','Depends / configurable','Creepy / no thanks'] }
+    ]
+  },
+  { title:'Section 6 — Switch Intent', sub:'Informs: decision S — will they leave their stack?',
+    qs:[
+      { key:'q24', label:'Q24. "If a single app did frictionless logging + one unified dashboard + a weekly progress story well, I\'d SERIOUSLY CONSIDER switching from my current apps."',
+        type:'likert', lmin:'Strongly disagree', lmax:'Strongly agree' },
+      { key:'q25', label:'Q25. What\'s the BIGGEST thing stopping you from switching tracking apps? (pick one)',
+        type:'radio', opts:['My history/data is locked in','Nothing\'s better enough to bother','Cost','Learning a new app','I\'m happy with what I have','I\'d switch tomorrow for something better'] }
+    ]
+  },
+  { title:'Section 7 — Willingness to Pay (Van Westendorp)', sub:'Four anchored questions. Order matters. Present the Wedge-A product description first.',
+    qs:[
+      { key:'q26', label:'Q26. At what monthly price would this be SO CHEAP you\'d question its quality?', type:'number', unit:'$/mo' },
+      { key:'q27', label:'Q27. At what monthly price would it be a GREAT DEAL — you\'d grab it?', type:'number', unit:'$/mo' },
+      { key:'q28', label:'Q28. At what monthly price would it start to feel EXPENSIVE but you\'d still consider it?', type:'number', unit:'$/mo' },
+      { key:'q29', label:'Q29. At what monthly price is it SO EXPENSIVE you\'d definitely NOT buy?', type:'number', unit:'$/mo' },
+      { key:'q30', label:'Q30. Realistically, the MOST you\'d pay per month for an app like this:',
+        type:'radio', opts:['$0','$1–9','$10–14','$15–19','$20–29','$30+'] }
+    ]
+  },
+  { title:'Section 8 — Open Text', sub:'Most quotable section — tag against the bets in analysis',
+    qs:[
+      { key:'q31', label:'Q31. What\'s the SINGLE BIGGEST FRUSTRATION with how you currently track training and nutrition?', type:'text', placeholder:'Their verbatim answer here...' },
+      { key:'q32', label:'Q32. Want early access or to be interviewed? Drop your email. (optional)', type:'text', placeholder:'Email or "No"' }
+    ]
+  }
+];
+
+// ==================== RENDER ====================
+function app(){
+  return `
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sb-head">Participants</div>
+    ${S.participants.map(p=>`
+      <div class="p-item ${p.id===S.currentId?'active':''}" onclick="switchP('${p.id}')">
+        <div class="p-name">${p.name}</div>
+        <div class="p-meta"><span class="seg-tag seg-${p.segment}">${p.segment}</span>${p.date}</div>
+      </div>`).join('')}
+    <div class="add-p-btn" onclick="openAddModal()">+ Add Participant</div>
+  </aside>
+  <div id="main">
+    <div class="tabs-bar">
+      ${['interview','survey','analysis','export'].map(t=>`
+        <div class="tab ${S.tab===t?'active':''}" onclick="setTab('${t}')">${t.charAt(0).toUpperCase()+t.slice(1)}</div>`).join('')}
+    </div>
+    <div class="content" id="content">
+      ${getCurrent() ? renderTab() : renderEmpty()}
+    </div>
+    <div class="save-bar">
+      <button class="save-btn" onclick="saveAll()">Save</button>
+      <span id="ss" class="save-status"></span>
+      <button class="export-btn" onclick="setTab('export')">Export JSON ↓</button>
+    </div>
+  </div>
+</div>`;
+}
+
+function renderEmpty(){
+  return `<div class="empty">
+    <div class="icon">👤</div>
+    <h3>No participant selected</h3>
+    <p>Add a participant using the sidebar to start recording interviews, surveys, and analysis.</p>
+  </div>`;
+}
+
+function renderTab(){
+  if(S.tab==='interview') return renderInterview();
+  if(S.tab==='survey') return renderSurvey();
+  if(S.tab==='analysis') return renderAnalysis();
+  if(S.tab==='export') return renderExport();
+  return '';
+}
+
+function renderInterview(){
+  const p=getCurrent();
+  const seg=p.segment==='ryan'?'Recomp-Ryan':p.segment==='grace'?'GLP-1-Grace':'Other';
+  return `
+  <div class="prof-card">
+    <div class="prof-av">${p.name.charAt(0).toUpperCase()}</div>
+    <div class="prof-info">
+      <div class="pn">${p.name}</div>
+      <div class="pm"><span class="seg-tag seg-${p.segment}">${seg}</span>${p.date}</div>
+    </div>
+    <button class="prof-edit" onclick="openEditModal('${p.id}')">Edit</button>
+  </div>
+  ${IBLOCKS.map(blk=>renderBlock(blk)).join('')}
+  ${renderScoringBlock()}`;
+}
+
+function renderBlock(blk){
+  return `<div class="block">
+    <div class="block-hd">
+      <span class="block-title">${blk.title}</span>
+      ${blk.badge?`<span class="badge ${blk.badgeClass}">${blk.badge}</span>`:''}
+    </div>
+    <div class="block-sub">${blk.sub}</div>
+    ${blk.qs.map(q=>renderQ(q,'interview')).join('')}
+  </div>`;
+}
+
+function renderQ(q, section){
+  const val=getField(section,q.key,'');
+  return `<div class="q">
+    <div class="q-label">${q.label}</div>
+    ${q.note?`<div class="q-note">${q.note}</div>`:''}
+    <div class="chips">${(q.chips||[]).map(c=>`
+      <span class="chip ${val.includes(c)?'sel':''}" onclick="chipClick(this,'${section}','${q.key}','${c.replace(/'/g,"&#39;")}')">${c}</span>`).join('')}
+    </div>
+    <textarea placeholder="Notes / verbatim quotes..." data-section="${section}" data-key="${q.key}" oninput="onTA(this)">${esc(val)}</textarea>
+  </div>`;
+}
+
+function renderScoringBlock(){
+  const iv=getCurrent().interview||{};
+  const betKeys=['A','B','C'];
+  return `<div class="block">
+    <div class="block-hd"><span class="block-title">Scoring — This Interview</span></div>
+    <div class="block-sub">Rate the evidence. Count only 🟢/🟡 toward bet verdicts.</div>
+
+    ${betKeys.map(b=>{
+      const tKey=`tier_bet_${b.toLowerCase()}`;
+      const vKey=`verdict_bet_${b.toLowerCase()}`;
+      const qKey=`quote_bet_${b.toLowerCase()}`;
+      const tv=iv[tKey]||''; const vv=iv[vKey]||''; const qv=iv[qKey]||'';
+      return `<div class="q">
+        <div class="q-label">Bet ${b} — Evidence Tier</div>
+        <div class="tier-row">
+          ${[['🟢 Hard (behavioral/financial)','g'],['🟡 Specific story','y'],['🔵 Stated preference','b'],['⚪ Politeness (discount)','w']].map(([l,c])=>`
+            <span class="tier-btn t${c} ${tv===l?'sel':''}" onclick="pick('interview','${tKey}','${l.replace(/'/g,"&#39;")}')">${l}</span>`).join('')}
+        </div>
+        <div class="q-label" style="margin-top:10px">Bet ${b} — Verdict</div>
+        <div class="vrow">
+          ${[['✅ Validated','yes'],['~ Mixed','mix'],['❌ Invalidated','no']].map(([l,c])=>`
+            <span class="vbtn v${c} ${vv===l?'sel':''}" onclick="pick('interview','${vKey}','${l.replace(/'/g,"&#39;")}')">${l}</span>`).join('')}
+        </div>
+        <div class="q-label" style="margin-top:10px">Best quote for Bet ${b}</div>
+        <textarea placeholder='The one quote that showed evidence for or against Bet ${b}...' data-section="interview" data-key="${qKey}" oninput="onTA(this)">${esc(qv)}</textarea>
+      </div>`;
+    }).join('')}
+
+    <div class="q">
+      <div class="q-label">Litmus Tests ✓ (tick each that applies)</div>
+      ${[['litmus_tried','Tried to solve it themselves (workaround built)'],['litmus_money','Currently spending money on this (paid apps/coaching)'],['litmus_emotion','Showed emotional intensity (animated, annoyed)'],['litmus_story','Gave a specific recent story (not a vague generalization)']].map(([k,l])=>`
+        <div class="chk-item" style="margin-bottom:4px">
+          <input type="checkbox" id="${k}" ${iv[k]?'checked':''} onchange="setField('interview','${k}',this.checked);persist()">
+          <label for="${k}">${l}</label>
+        </div>`).join('')}
+    </div>
+
+    <div class="q">
+      <div class="q-label">Switch intent</div>
+      <div class="vrow">
+        ${['Strong','Soft','Inertia wall'].map(v=>`
+          <span class="vbtn ${iv['switch_lean']===v?'vmix sel':'vmix'}" onclick="pick('interview','switch_lean','${v}')">${v}</span>`).join('')}
+      </div>
+    </div>
+    <div class="q">
+      <div class="q-label">Pay at $10–20?</div>
+      <div class="vrow">
+        ${['Yes','Maybe','No'].map(v=>`
+          <span class="vbtn ${iv['pay_lean']===v?'vyes sel':v==='No'?'vno':'vmix'}" onclick="pick('interview','pay_lean','${v}')">${v}</span>`).join('')}
+      </div>
+    </div>
+    <div class="q">
+      <div class="q-label">The one quote that changed my mind</div>
+      <textarea placeholder="The single most surprising or belief-shifting thing they said..." data-section="interview" data-key="mind_change_quote" oninput="onTA(this)">${esc(iv['mind_change_quote']||'')}</textarea>
+    </div>
+    <div class="q">
+      <div class="q-label">Surprise / didn't fit the thesis</div>
+      <textarea placeholder="What came up that argued AGAINST your assumptions?" data-section="interview" data-key="surprise_note" oninput="onTA(this)">${esc(iv['surprise_note']||'')}</textarea>
+    </div>
+  </div>`;
+}
+
+function renderSurvey(){
+  const p=getCurrent();
+  return `
+  <div class="prof-card">
+    <div class="prof-av">${p.name.charAt(0).toUpperCase()}</div>
+    <div class="prof-info">
+      <div class="pn">${p.name} — Survey</div>
+      <div class="pm"><span class="seg-tag seg-${p.segment}">${p.segment}</span>${p.date}</div>
+    </div>
+  </div>
+  ${SSECTIONS.map(sec=>`
+    <div class="block">
+      <div class="block-hd"><span class="block-title">${sec.title}</span></div>
+      <div class="block-sub">${sec.sub}</div>
+      ${sec.qs.map(q=>renderSurveyQ(q)).join('')}
+    </div>`).join('')}`;
+}
+
+function renderSurveyQ(q){
+  const val=getField('survey',q.key, q.type==='check'?[]:q.type==='number'?'':'');
+  let input='';
+  if(q.type==='radio'){
+    input=`<div class="ropts">${(q.opts||[]).map(o=>`
+      <span class="ropt ${val===o?'sel':''}" onclick="pick('survey','${q.key}','${o.replace(/'/g,"&#39;")}')">${o}</span>`).join('')}</div>`;
+  } else if(q.type==='check'){
+    input=`<div class="chk-grp">${(q.opts||[]).map(o=>`
+      <div class="chk-item">
+        <input type="checkbox" ${(Array.isArray(val)&&val.includes(o))?'checked':''} onchange="toggleCheck('survey','${q.key}','${o.replace(/'/g,"&#39;")}',this.checked)">
+        <label>${o}</label>
+      </div>`).join('')}</div>`;
+  } else if(q.type==='likert'){
+    input=`<div class="likert-wrap">
+      <div class="likert-lbl">${q.lmin||''}</div>
+      <div class="likert-row">${[1,2,3,4,5].map(n=>`
+        <div class="lk ${val==n?'sel':''}" onclick="pick('survey','${q.key}','${n}')">${n}</div>`).join('')}
+      </div>
+      <div class="likert-lbl r">${q.lmax||''}</div>
+    </div>`;
+  } else if(q.type==='number'){
+    input=`<div style="display:flex;align-items:center;gap:8px">
+      <input class="num-inp" type="number" min="0" max="500" value="${esc(val)}" placeholder="0"
+        onchange="setField('survey','${q.key}',this.value);persist()">
+      <span style="color:var(--dim);font-size:12px">${q.unit||''}</span>
+    </div>`;
+  } else {
+    input=`<textarea placeholder="${q.placeholder||'Your answer...'}" data-section="survey" data-key="${q.key}" oninput="onTA(this)">${esc(val)}</textarea>`;
+  }
+  return `<div class="q">
+    <div class="q-label">${q.label}</div>
+    ${q.note?`<div class="q-note">${q.note}</div>`:''}
+    ${input}
+  </div>`;
+}
+
+function renderAnalysis(){
+  const p=getCurrent();
+  const an=p.analysis||{};
+  const iv=p.interview||{};
+
+  // Auto-tally per-interview verdicts
+  const betA=iv['verdict_bet_a']||'—';
+  const betB=iv['verdict_bet_b']||'—';
+  const betC=iv['verdict_bet_c']||'—';
+  const litmusCount=['litmus_tried','litmus_money','litmus_emotion','litmus_story'].filter(k=>iv[k]).length;
+
+  return `
+  <div class="prof-card">
+    <div class="prof-av">${p.name.charAt(0).toUpperCase()}</div>
+    <div class="prof-info">
+      <div class="pn">${p.name} — Analysis</div>
+      <div class="pm"><span class="seg-tag seg-${p.segment}">${p.segment}</span>${p.date}</div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-hd"><span class="block-title">Interview Snapshot (auto-filled from Scoring tab)</span></div>
+    <div class="score-grid">
+      <div class="score-box"><div class="sbl">Bet A</div><div class="sbv" style="color:${betAColor(betA)}">${betA}</div></div>
+      <div class="score-box"><div class="sbl">Bet B</div><div class="sbv" style="color:${betAColor(betB)}">${betB}</div></div>
+      <div class="score-box"><div class="sbl">Bet C</div><div class="sbv" style="color:${betAColor(betC)}">${betC}</div></div>
+      <div class="score-box"><div class="sbl">Litmus /4</div><div class="sbv">${litmusCount}/4</div></div>
+      <div class="score-box"><div class="sbl">Switch</div><div class="sbv" style="font-size:13px">${iv['switch_lean']||'—'}</div></div>
+      <div class="score-box"><div class="sbl">Pay $10–20</div><div class="sbv" style="font-size:13px">${iv['pay_lean']||'—'}</div></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-hd"><span class="block-title">Bets Scoreboard — Evidence Ledger</span></div>
+    <div class="block-sub">Fill BOTH columns. Disconfirming evidence is the antidote to wishful reading.</div>
+    ${['A','B','C'].map(b=>`
+      <div class="q">
+        <div class="q-label">Bet ${b} — Evidence FOR</div>
+        <textarea placeholder="What behavioral/financial evidence supports Bet ${b}?" data-section="analysis" data-key="ev_${b.toLowerCase()}_for" oninput="onTA(this)">${esc(an['ev_'+b.toLowerCase()+'_for']||'')}</textarea>
+        <div class="q-label" style="margin-top:8px">Bet ${b} — Evidence AGAINST</div>
+        <textarea placeholder="What evidence argues AGAINST Bet ${b}? (be honest)" data-section="analysis" data-key="ev_${b.toLowerCase()}_against" oninput="onTA(this)">${esc(an['ev_'+b.toLowerCase()+'_against']||'')}</textarea>
+      </div>`).join('')}
+  </div>
+
+  <div class="block">
+    <div class="block-hd"><span class="block-title">Secondary Validations</span></div>
+    <table class="atable">
+      <tr><th>Item</th><th>Signal observed</th><th>Verdict</th></tr>
+      ${[
+        ['Food-logging pain severity','sev_food','severe / moderate / overstated'],
+        ['Protein-first resonance','sev_protein','lands / niche'],
+        ['AI photo logging — trust','sev_ai','wanted / accuracy-gated / rejected'],
+        ['"Remove deciding & remembering" promise','sev_remove','lands / neutral / confused'],
+        ['Gym-arrival / auto-detect prompts','sev_gym','helpful / configurable / creepy']
+      ].map(([lbl,k,placeholder])=>`<tr>
+        <td style="width:35%;font-weight:600;font-size:11px">${lbl}</td>
+        <td><textarea style="min-height:40px" data-section="analysis" data-key="${k}_signal" oninput="onTA(this)">${esc(an[k+'_signal']||'')}</textarea></td>
+        <td style="width:20%"><textarea style="min-height:40px" placeholder="${placeholder}" data-section="analysis" data-key="${k}_verdict" oninput="onTA(this)">${esc(an[k+'_verdict']||'')}</textarea></td>
+      </tr>`).join('')}
+    </table>
+  </div>
+
+  <div class="block">
+    <div class="block-hd"><span class="block-title">Switch & Pay Signals</span></div>
+    <div class="q">
+      <div class="q-label">Switch intent read</div>
+      <div class="vrow">
+        ${['Strong','Soft','Inertia wall'].map(v=>`
+          <span class="vbtn vmix ${(an['switch_read']||'')==v?'sel':''}" onclick="pick('analysis','switch_read','${v}')">${v}</span>`).join('')}
+      </div>
+    </div>
+    <div class="q">
+      <div class="q-label">Switch — top blocker named</div>
+      <textarea placeholder="e.g. 'data history locked in Hevy'" data-section="analysis" data-key="switch_blocker" oninput="onTA(this)">${esc(an['switch_blocker']||'')}</textarea>
+    </div>
+    <div class="q">
+      <div class="q-label">Pay thesis read</div>
+      <div class="vrow">
+        ${['Pay thesis holds','Price-sensitive','Free-only'].map(v=>`
+          <span class="vbtn vyes ${(an['pay_read']||'')==v?'sel':''}" onclick="pick('analysis','pay_read','${v}')">${v}</span>`).join('')}
+      </div>
+    </div>
+    <div class="q">
+      <div class="q-label">Van Westendorp summary (OPP / acceptable range)</div>
+      <textarea placeholder="e.g. OPP = $12 / range $8–18" data-section="analysis" data-key="vw_summary" oninput="onTA(this)">${esc(an['vw_summary']||'')}</textarea>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-hd"><span class="block-title">Surprises & Belief Updates</span></div>
+    ${[
+      ['Biggest surprise','surprise','What came up that was genuinely unexpected?'],
+      ['What we got most wrong','got_wrong','Where was the thesis off?'],
+      ['A persona detail to revise','persona_revision','How should Recomp-Ryan or GLP-1-Grace persona be updated?'],
+      ['A scope implication','scope_implication','What does this change about the MVP scope?'],
+      ['A new pain / segment worth exploring','new_pain','Something we hadn\'t considered before']
+    ].map(([lbl,k,ph])=>`<div class="q">
+      <div class="q-label">${lbl}</div>
+      <textarea placeholder="${ph}" data-section="analysis" data-key="${k}" oninput="onTA(this)">${esc(an[k]||'')}</textarea>
+    </div>`).join('')}
+  </div>
+
+  <div class="block">
+    <div class="block-hd"><span class="block-title">The Decision — Build / Iterate / Pivot</span></div>
+    <div class="block-sub">One explicit call. Count 🟢/🟡 evidence only. Don't move the goalposts.</div>
+    <div class="q">
+      <div class="q-label">Decision</div>
+      <div class="vrow">
+        <span class="vbtn vyes ${(an['decision']||'')==='Build'?'sel':''}" onclick="pick('analysis','decision','Build')">🟢 Build</span>
+        <span class="vbtn vmix ${(an['decision']||'')==='Iterate'?'sel':''}" onclick="pick('analysis','decision','Iterate')">🟡 Iterate</span>
+        <span class="vbtn vno ${(an['decision']||'')==='Pivot'?'sel':''}" onclick="pick('analysis','decision','Pivot')">🔴 Pivot</span>
+      </div>
+      <div class="q-note" style="margin-top:8px">
+        🟢 Build = ≥2 of 3 bets validated (incl. Bet A) + switch ≥ soft + pay thesis holds<br>
+        🟡 Iterate = bets mixed or fixable framing miss<br>
+        🔴 Pivot = Bet A invalidated, or no switch intent, or no pay signal
+      </div>
+    </div>
+    <div class="q">
+      <div class="q-label">Rationale (3–5 sentences, evidence-cited)</div>
+      <textarea placeholder="Cite the specific behavioral evidence that drove this call..." data-section="analysis" data-key="decision_rationale" oninput="onTA(this)" style="min-height:96px">${esc(an['decision_rationale']||'')}</textarea>
+    </div>
+    <div class="q">
+      <div class="q-label">If Iterate/Pivot — specific change & re-test plan</div>
+      <textarea placeholder="What exactly changes? What would you re-test?" data-section="analysis" data-key="iterate_plan" oninput="onTA(this)">${esc(an['iterate_plan']||'')}</textarea>
+    </div>
+    <div class="q">
+      <div class="q-label">Top risks still open after this round</div>
+      <textarea placeholder="1. ...\n2. ...\n3. ..." data-section="analysis" data-key="open_risks" oninput="onTA(this)">${esc(an['open_risks']||'')}</textarea>
+    </div>
+    <div class="q">
+      <div class="q-label">Immediate next actions</div>
+      <textarea placeholder="[ ] Action · Owner · Date" data-section="analysis" data-key="next_actions" oninput="onTA(this)">${esc(an['next_actions']||'')}</textarea>
+    </div>
+  </div>`;
+}
+
+function betAColor(v){
+  if(v.includes('Validated')) return 'var(--good)';
+  if(v.includes('Mixed')) return 'var(--warn)';
+  if(v.includes('Invalidated')) return 'var(--a3)';
+  return 'var(--dim)';
+}
+
+function renderExport(){
+  const json=JSON.stringify(S.participants, null, 2);
+  const summary=buildSummaryTable();
+  return `
+  <div class="block">
+    <div class="block-hd"><span class="block-title">Export & Review</span></div>
+    <div class="block-sub">${S.participants.length} participant(s) · All data stored in browser localStorage</div>
+    <div class="export-actions" style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="save-btn" onclick="downloadJSON()">Download JSON</button>
+      <button class="export-btn" onclick="copyJSON()">Copy JSON</button>
+    </div>
+    ${summary}
+    <div class="hdiv"></div>
+    <div class="block-title" style="margin-bottom:8px">Raw JSON</div>
+    <pre style="background:var(--card2);border-radius:8px;padding:14px;font-size:11px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:320px;overflow-y:auto">${esc(json)}</pre>
+  </div>`;
+}
+
+function buildSummaryTable(){
+  if(!S.participants.length) return '<p style="color:var(--dim);font-size:13px">No participants yet.</p>';
+  return `<table class="atable">
+    <tr><th>Name</th><th>Segment</th><th>Date</th><th>Bet A</th><th>Bet B</th><th>Bet C</th><th>Decision</th><th>Pay</th></tr>
+    ${S.participants.map(p=>`<tr>
+      <td style="font-weight:600">${esc(p.name)}</td>
+      <td><span class="seg-tag seg-${p.segment}">${p.segment}</span></td>
+      <td>${esc(p.date)}</td>
+      <td style="color:${betAColor((p.interview||{})['verdict_bet_a']||'')}">${(p.interview||{})['verdict_bet_a']||'—'}</td>
+      <td style="color:${betAColor((p.interview||{})['verdict_bet_b']||'')}">${(p.interview||{})['verdict_bet_b']||'—'}</td>
+      <td style="color:${betAColor((p.interview||{})['verdict_bet_c']||'')}">${(p.interview||{})['verdict_bet_c']||'—'}</td>
+      <td style="font-weight:600">${(p.analysis||{})['decision']||'—'}</td>
+      <td>${(p.interview||{})['pay_lean']||'—'}</td>
+    </tr>`).join('')}
+  </table>`;
+}
+
+// ==================== EVENTS ====================
+function chipClick(el, section, key, val){
+  const ta=el.parentElement.nextElementSibling;
+  const cur=(ta.value||'').trim();
+  if(cur && !cur.includes(val)){
+    ta.value = cur ? cur+'\n'+val : val;
+  } else if(!cur){
+    ta.value = val;
+  }
+  setField(section, key, ta.value);
+  el.classList.toggle('sel', ta.value.includes(val));
+  persist();
+}
+
+function onTA(el){
+  const section=el.dataset.section, key=el.dataset.key;
+  setField(section, key, el.value);
+  persist();
+}
+
+function pick(section, key, val){
+  setField(section, key, val);
+  persist();
+  rerender();
+}
+
+function toggleCheck(section, key, val, checked){
+  const p=getCurrent(); if(!p) return;
+  if(!p[section]) p[section]={};
+  let arr=p[section][key]||[];
+  if(!Array.isArray(arr)) arr=[];
+  if(checked){ if(!arr.includes(val)) arr.push(val); }
+  else { arr=arr.filter(v=>v!==val); }
+  p[section][key]=arr;
+  persist();
+}
+
+function saveAll(){
+  persist();
+  const ss=document.getElementById('ss');
+  if(ss){ ss.textContent='✓ Saved'; setTimeout(()=>{ if(ss) ss.textContent=''; },2000); }
+}
+
+function setTab(t){ S.tab=t; rerender(); }
+function switchP(id){ S.currentId=id; rerender(); }
+
+function openAddModal(){
+  document.getElementById('modal-root').innerHTML=`
+  <div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <h3>Add Participant</h3>
+      <input id="m-name" type="text" placeholder="Name or pseudonym (e.g. Ryan-01)" autofocus>
+      <select id="m-seg">
+        <option value="ryan">Recomp-Ryan (strength, multi-app, recomp)</option>
+        <option value="grace">GLP-1-Grace (on/post GLP-1, protein-focused)</option>
+        <option value="other">Other / Lapsed Logger</option>
+      </select>
+      <input id="m-date" type="date" value="${new Date().toISOString().slice(0,10)}">
+      <div class="mactions">
+        <button class="mbtn mok" onclick="confirmAdd()">Add</button>
+        <button class="mbtn mcancel" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('m-name').focus();
+}
+
+function openEditModal(id){
+  const p=S.participants.find(x=>x.id===id); if(!p) return;
+  document.getElementById('modal-root').innerHTML=`
+  <div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <h3>Edit Participant</h3>
+      <input id="m-name" type="text" value="${esc(p.name)}" placeholder="Name or pseudonym">
+      <select id="m-seg">
+        ${['ryan','grace','other'].map(s=>`<option value="${s}" ${p.segment===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+      <input id="m-date" type="date" value="${esc(p.date)}">
+      <div class="mactions">
+        <button class="mbtn mok" onclick="confirmEdit('${id}')">Save</button>
+        <button class="mbtn mcancel" onclick="openDeleteConfirm('${id}')">Delete</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function openDeleteConfirm(id){
+  const p=S.participants.find(x=>x.id===id); if(!p) return;
+  document.getElementById('modal-root').innerHTML=`
+  <div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <h3>Delete ${esc(p.name)}?</h3>
+      <p style="color:var(--dim);font-size:13px;margin-bottom:16px">This will permanently delete all their interview, survey, and analysis data.</p>
+      <div class="mactions">
+        <button class="mbtn mok" style="background:var(--a3)" onclick="deleteP('${id}')">Delete</button>
+        <button class="mbtn mcancel" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function confirmAdd(){
+  const name=(document.getElementById('m-name').value||'').trim();
+  if(!name) return;
+  const seg=document.getElementById('m-seg').value;
+  const date=document.getElementById('m-date').value;
+  const p={ id:Date.now().toString(), name, segment:seg, date, interview:{}, survey:{}, analysis:{} };
+  S.participants.push(p);
+  S.currentId=p.id;
+  persist();
+  closeModal();
+  rerender();
+}
+
+function confirmEdit(id){
+  const p=S.participants.find(x=>x.id===id); if(!p) return;
+  p.name=(document.getElementById('m-name').value||p.name).trim();
+  p.segment=document.getElementById('m-seg').value;
+  p.date=document.getElementById('m-date').value;
+  persist();
+  closeModal();
+  rerender();
+}
+
+function deleteP(id){
+  S.participants=S.participants.filter(p=>p.id!==id);
+  if(S.currentId===id) S.currentId=S.participants.length?S.participants[0].id:null;
+  persist();
+  closeModal();
+  rerender();
+}
+
+function closeModal(){ document.getElementById('modal-root').innerHTML=''; }
+
+function downloadJSON(){
+  const data={ exported: new Date().toISOString(), participants: S.participants };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`validation_data_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function copyJSON(){
+  navigator.clipboard.writeText(JSON.stringify(S.participants,null,2))
+    .then(()=>{ alert('Copied to clipboard!'); })
+    .catch(()=>{ alert('Copy failed — use the Download button instead.'); });
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ==================== INIT ====================
+function rerender(){
+  document.getElementById('app').innerHTML=app();
+}
+
+load();
+document.getElementById('app').innerHTML=app();
+</script>
+</body>
+</html>

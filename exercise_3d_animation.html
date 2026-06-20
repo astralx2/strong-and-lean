@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D Exercise Form Guide</title>
+<style>
+:root{
+  --bg:#0b0e14;--surface:#141820;--card:#1a1f2e;--border:#252d3d;
+  --a1:#7c5cff;--a2:#23d5ab;--a3:#ff6b9d;
+  --gold:#ffd166;--good:#3ddc84;--warn:#ffb454;
+  --dim:#6b768c;--text:#e8eaf0;--sub:#9aa5b8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  color:var(--text);min-height:100vh;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:28px 16px 48px;
+}
+.wrap{width:100%;max-width:960px}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.title{font-size:20px;font-weight:700;color:var(--text)}
+.title span{color:var(--a1)}
+.ex-tabs{display:flex;gap:8px}
+.etab{
+  padding:8px 20px;border-radius:20px;font-size:14px;font-weight:700;
+  border:1.5px solid var(--border);background:var(--card);color:var(--dim);
+  cursor:pointer;transition:all .2s;
+}
+.etab.on{background:var(--a1);border-color:var(--a1);color:#fff}
+.views{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.view-wrap{display:flex;flex-direction:column;gap:6px}
+.view-label{text-align:center;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px}
+canvas{width:100%;height:auto;border-radius:16px;border:1px solid var(--border);background:#0d111a;display:block}
+.phase-section{background:var(--surface);border-radius:14px;border:1px solid var(--border);padding:14px 18px;margin-bottom:14px}
+.phase-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.phase-name{font-size:14px;font-weight:700;color:var(--text)}
+.phase-count{font-size:12px;color:var(--dim)}
+.phase-dots{display:flex;gap:8px}
+.pdot{width:28px;height:6px;border-radius:3px;background:var(--border);transition:background .3s;cursor:pointer}
+.pdot.on{background:var(--a1)}
+.pdot.done{background:rgba(124,92,255,.4)}
+.cue-text{font-size:13px;color:var(--sub);line-height:1.6;padding-top:8px;border-top:1px solid var(--border);margin-top:8px}
+.cue-text strong{color:var(--a2)}
+.cue-text .angle{color:var(--gold);font-weight:700}
+.cue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.cue-card{background:var(--card);border-radius:10px;border:1px solid var(--border);padding:8px 10px}
+.cue-card-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
+.cue-card-val{font-size:13px;font-weight:700;color:var(--a2)}
+.play-row{display:flex;align-items:center;gap:12px;margin-top:12px}
+.play-btn{
+  padding:8px 20px;border-radius:20px;font-size:13px;font-weight:700;
+  border:1.5px solid var(--a1);background:var(--a1);color:#fff;
+  cursor:pointer;transition:all .2s;
+}
+.play-btn.paused{background:transparent;color:var(--a1)}
+.speed-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim)}
+.speed-row input[type=range]{accent-color:var(--a1);width:90px}
+.muscle-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.mleg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub)}
+.mleg-dot{width:10px;height:10px;border-radius:50%}
+/* ── Mode toggle ── */
+.mode-tabs{display:flex;gap:6px}
+.mtab{
+  padding:6px 14px;border-radius:16px;font-size:12px;font-weight:700;
+  border:1.5px solid var(--border);background:var(--card);color:var(--dim);
+  cursor:pointer;transition:all .2s;
+}
+.mtab.on{background:var(--a2);border-color:var(--a2);color:#04221b}
+/* ── Stages filmstrip ── */
+.stages-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px}
+.stages-bar .sb-title{font-size:13px;font-weight:700;color:var(--sub)}
+.view-pick{display:flex;gap:6px}
+.vbtn{
+  padding:5px 12px;border-radius:14px;font-size:11px;font-weight:700;
+  border:1.5px solid var(--border);background:var(--card);color:var(--dim);cursor:pointer;
+}
+.vbtn.on{background:var(--a1);border-color:var(--a1);color:#fff}
+.stages{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:16px}
+.stage-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.stage-head{display:flex;align-items:center;gap:8px}
+.stage-num{
+  width:22px;height:22px;border-radius:50%;flex:0 0 22px;
+  background:var(--a1);color:#fff;font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.stage-name{font-size:13px;font-weight:700;color:var(--text)}
+.stage-card canvas{width:100%;height:auto;border-radius:10px;border:1px solid var(--border);background:#0d111a}
+.stage-angles{display:flex;flex-wrap:wrap;gap:4px}
+.sa-chip{font-size:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:3px 7px}
+.sa-chip b{color:var(--dim);font-weight:600}
+.sa-chip span{color:var(--gold);font-weight:700;margin-left:3px}
+.stage-cues{font-size:11px;color:var(--sub);line-height:1.55}
+.stage-cues strong{color:var(--a2);font-weight:600}
+.hidden{display:none}
+
+/* ── Embedded / mobile mode (inside library iframe, 390px) ── */
+@media(max-width:480px){
+  body{padding:0}
+  .wrap{max-width:100%}
+  .top-bar{padding:10px 14px;margin-bottom:12px;gap:8px;flex-wrap:nowrap}
+  .title{font-size:14px}
+  .etab{padding:6px 12px;font-size:12px}
+  .mtab{padding:5px 10px;font-size:11px}
+  .views{grid-template-columns:1fr;gap:8px;margin-bottom:10px}
+  .view-label{font-size:10px}
+  canvas{border-radius:10px}
+  .phase-section{padding:10px 13px;margin-bottom:10px}
+  .phase-name{font-size:13px}
+  .cue-grid{grid-template-columns:repeat(2,1fr);gap:6px}
+  .stages{grid-template-columns:1fr;gap:10px}
+  .stages-bar{flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:8px}
+}
+/* embedded: single side-view only to save space */
+body.embedded .views{grid-template-columns:1fr}
+body.embedded #cv0,body.embedded #cv2{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top-bar">
+    <div class="title">3D Form Guide <span>Beta</span></div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <div class="mode-tabs">
+        <button class="mtab on" id="modeAnim" onclick="setMode('anim')">▶ Animated</button>
+        <button class="mtab" id="modeStages" onclick="setMode('stages')">▦ Stages</button>
+      </div>
+      <div class="ex-tabs">
+        <button class="etab on" onclick="setEx('squat')">Squat</button>
+        <button class="etab" onclick="setEx('deadlift')">Deadlift</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGES (static filmstrip) -->
+  <div id="stagesMode" class="hidden">
+    <div class="stages-bar">
+      <div class="sb-title">Correct form, stage by stage — study each position</div>
+      <div class="view-pick">
+        <button class="vbtn on" id="vb_three" onclick="setStageView('three')">¾ View</button>
+        <button class="vbtn" id="vb_side" onclick="setStageView('side')">Side</button>
+        <button class="vbtn" id="vb_front" onclick="setStageView('front')">Front</button>
+      </div>
+    </div>
+    <div class="stages" id="stagesGrid"></div>
+  </div>
+
+  <!-- ANIMATED -->
+  <div id="animMode">
+  <div class="views">
+    <div class="view-wrap">
+      <div class="view-label">Front-Left</div>
+      <canvas id="cv0" width="280" height="380"></canvas>
+    </div>
+    <div class="view-wrap">
+      <div class="view-label">Side</div>
+      <canvas id="cv1" width="280" height="380"></canvas>
+    </div>
+    <div class="view-wrap">
+      <div class="view-label">Front-Right</div>
+      <canvas id="cv2" width="280" height="380"></canvas>
+    </div>
+  </div>
+  <div class="phase-section">
+    <div class="phase-row">
+      <div class="phase-name" id="phaseName">Setup</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="phase-dots" id="phaseDots"></div>
+        <div class="phase-count" id="phaseCount"></div>
+      </div>
+    </div>
+    <div class="play-row">
+      <button class="play-btn" id="playBtn" onclick="togglePlay()">&#9646;&#9646; Pause</button>
+      <div class="speed-row">Speed <input type="range" min="1" max="5" value="3" id="speedSlider" oninput="setSpeed(this.value)"></div>
+    </div>
+    <div class="cue-grid" id="cueGrid"></div>
+    <div class="cue-text" id="cueText"></div>
+  </div>
+  <div class="phase-section">
+    <div class="phase-row"><div class="phase-name">Muscle Activation</div></div>
+    <div class="muscle-legend" id="muscleLegend"></div>
+  </div>
+  </div><!-- /animMode -->
+</div>
+<!-- PHASE 2: DATA INJECTED HERE -->
+<script>
+/* ══════════════════════════════════════════════════════════
+   PHASE 2 — SKELETON DATA  (joint positions, 1 unit = 10 cm)
+   Coord system: X=right, Y=up, Z=toward viewer (anterior)
+   Proportions: De Leva 1996 / Winter 2009 (170 cm reference)
+   Biomechanics: Squat University, Frontiers Sports 2024,
+                 PMC9396136, Escamilla/Stronger by Science
+   ══════════════════════════════════════════════════════════ */
+
+// ── Anthropometric constants ──────────────────────────────
+// Standing neutral (all in model units, 1 unit = 10cm, total height = 17)
+const STANDING = {
+  HD:[0,16.1,0.4],  NK:[0,14.7,0.2],
+  SL:[-2.06,13.92,0.0], SR:[2.06,13.92,0.0],
+  EL:[-2.06,10.81,0.0], ER:[2.06,10.81,0.0],
+  WL:[-2.06,8.0,0.0],   WR:[2.06,8.0,0.0],
+  PV:[0,9.01,0.0],
+  HL:[-1.5,9.01,0.2],   HR:[1.5,9.01,0.2],
+  KL:[-1.5,4.85,0.4],   KR:[1.5,4.85,0.4],
+  AL:[-1.5,0.77,0.2],   AR:[1.5,0.77,0.2],
+  FL:[-1.5,0.0,0.0],    FR:[1.5,0.0,0.0],
+};
+
+// ── Exercise definitions ───────────────────────────────────
+const EXERCISES = {
+
+  squat: {
+    label:'Squat',
+    phases:[
+      {
+        name:'Setup — Standing',
+        cues:['Bar on upper traps (high bar)','Feet shoulder-width, toes 30° out','Brace core, neutral spine'],
+        angles:{Ankle:'5°',Knee:'0°',Hip:'0°',Torso:'5°'},
+        muscles:{quads:0.2,glutes:0.2,hamstrings:0.1,lower_back:0.2},
+        joints: structuredClone(STANDING),
+      },
+      {
+        name:'Parallel — Thighs Level',
+        cues:['Knees track over 2nd–3rd toe','Hip crease at knee height','Torso & shins roughly parallel','Chest up, elbows under bar'],
+        angles:{Ankle:'20°','Knee flex':'90°','Hip flex':'90°','Torso fwd':'28°'},
+        muscles:{quads:0.95,glutes:0.8,hamstrings:0.6,lower_back:0.5,calves:0.4},
+        joints:{
+          HD:[0,11.0,0.9],    NK:[0,9.65,0.1],
+          SL:[-2.2,9.03,-0.2],  SR:[2.2,9.03,-0.2],
+          EL:[-3.2,8.5,-0.5],   ER:[3.2,8.5,-0.5],
+          WL:[-3.5,9.0,-0.4],   WR:[3.5,9.0,-0.4],
+          PV:[0,4.70,-2.5],
+          HL:[-1.7,4.70,-2.5],  HR:[1.7,4.70,-2.5],
+          KL:[-2.0,4.70,1.6],   KR:[2.0,4.70,1.6],
+          AL:[-1.7,0.77,0.2],   AR:[1.7,0.77,0.2],
+          FL:[-1.7,0.0,0.0],    FR:[1.7,0.0,0.0],
+        },
+      },
+      {
+        name:'Full Depth — ATG',
+        cues:['Hip crease well below knee','Knees pushed out, tracking toes','Ankle dorsiflexion ~33°','Maintain neutral spine throughout'],
+        angles:{Ankle:'33°','Knee flex':'130°','Hip flex':'115°','Torso fwd':'38°'},
+        muscles:{quads:1.0,glutes:0.95,hamstrings:0.75,lower_back:0.6,calves:0.55,adductors:0.7},
+        joints:{
+          HD:[0,9.68,2.5],    NK:[0,8.18,1.8],
+          SL:[-2.2,7.63,1.4],  SR:[2.2,7.63,1.4],
+          EL:[-3.2,7.5,1.0],   ER:[3.2,7.5,1.0],
+          WL:[-3.5,7.8,0.8],   WR:[3.5,7.8,0.8],
+          PV:[0,3.76,-1.7],
+          HL:[-1.7,3.76,-1.7],  HR:[1.7,3.76,-1.7],
+          KL:[-2.1,4.27,2.5],   KR:[2.1,4.27,2.5],
+          AL:[-1.7,0.77,0.2],   AR:[1.7,0.77,0.2],
+          FL:[-1.7,0.0,0.0],    FR:[1.7,0.0,0.0],
+        },
+      },
+    ],
+  },
+
+  deadlift: {
+    label:'Deadlift',
+    phases:[
+      {
+        name:'Setup — Bar on Floor',
+        cues:['Bar over mid-foot (1" from shins)','Hips above knees, shoulders over bar','Shins nearly vertical','Neutral spine, lats engaged'],
+        angles:{'Back':'45° from floor','Shin':'10° fwd','Knee flex':'~90°','Shoulder':'over bar'},
+        muscles:{hamstrings:0.6,glutes:0.5,lower_back:0.7,lats:0.6,traps:0.5},
+        joints:{
+          HD:[0,11.0,1.8],    NK:[0,9.49,0.8],
+          SL:[-2.06,9.0,0.3],  SR:[2.06,9.0,0.3],
+          EL:[-2.06,6.0,0.5],  ER:[2.06,6.0,0.5],
+          WL:[-2.06,2.2,0.75], WR:[2.06,2.2,0.75],
+          PV:[0,5.53,-3.2],
+          HL:[-1.2,5.53,-3.2], HR:[1.2,5.53,-3.2],
+          KL:[-1.2,4.89,0.93], KR:[1.2,4.89,0.93],
+          AL:[-1.2,0.77,0.2],  AR:[1.2,0.77,0.2],
+          FL:[-1.2,0.0,0.0],   FR:[1.2,0.0,0.0],
+        },
+      },
+      {
+        name:'Mid-Pull — Bar at Knee',
+        cues:['Bar drags up shins — stay close','Hips & shoulders rise together','Back angle holds','Drive through floor'],
+        angles:{'Back':'~45–50°','Knee':'partially open','Bar':'at knee height','Key':'no hip shoot'},
+        muscles:{hamstrings:1.0,glutes:0.9,lower_back:0.95,lats:0.8,traps:0.7,quads:0.6},
+        joints:{
+          HD:[0,14.0,1.0],    NK:[0,13.0,0.5],
+          SL:[-2.06,11.5,0.2], SR:[2.06,11.5,0.2],
+          EL:[-2.06,8.5,0.3],  ER:[2.06,8.5,0.3],
+          WL:[-2.06,4.89,0.5], WR:[2.06,4.89,0.5],
+          PV:[0,7.5,-1.5],
+          HL:[-1.2,7.5,-1.5],  HR:[1.2,7.5,-1.5],
+          KL:[-1.2,4.89,0.5],  KR:[1.2,4.89,0.5],
+          AL:[-1.2,0.77,0.2],  AR:[1.2,0.77,0.2],
+          FL:[-1.2,0.0,0.0],   FR:[1.2,0.0,0.0],
+        },
+      },
+      {
+        name:'Lockout — Standing',
+        cues:['Hips fully extended — squeeze glutes','Shoulders slightly behind bar','Soft knee — do not hyperextend','Bar at upper thigh / hip crease'],
+        angles:{'Knee':'~175°','Hip':'~175°','Torso':'vertical','Bar':'hip crease'},
+        muscles:{glutes:1.0,hamstrings:0.7,lower_back:0.6,traps:0.8,lats:0.5,quads:0.3},
+        joints:{
+          HD:[0,16.1,0.3],    NK:[0,14.7,0.1],
+          SL:[-2.06,13.92,-0.1], SR:[2.06,13.92,-0.1],
+          EL:[-2.06,10.8,0.0],   ER:[2.06,10.8,0.0],
+          WL:[-2.06,7.5,0.5],    WR:[2.06,7.5,0.5],
+          PV:[0,9.01,0.0],
+          HL:[-1.2,9.01,0.0],   HR:[1.2,9.01,0.0],
+          KL:[-1.2,4.85,0.3],   KR:[1.2,4.85,0.3],
+          AL:[-1.2,0.77,0.2],   AR:[1.2,0.77,0.2],
+          FL:[-1.2,0.0,0.0],    FR:[1.2,0.0,0.0],
+        },
+      },
+    ],
+  },
+};
+
+// ── Bones: [jointA, jointB, radius, muscleGroup, facing] ──
+// facing: 'front'|'back'|'side'|'both'
+const BONES = [
+  ['NK','HD', 0.55,'neck','both'],
+  ['SL','EL', 0.50,'triceps','back'],
+  ['SR','ER', 0.50,'triceps','back'],
+  ['EL','WL', 0.42,'forearm','both'],
+  ['ER','WR', 0.42,'forearm','both'],
+  ['NK','SL', 0.70,'traps','back'],
+  ['NK','SR', 0.70,'traps','back'],
+  ['PV','NK', 1.00,'lower_back','back'],
+  ['PV','HL', 0.60,'glutes','back'],
+  ['PV','HR', 0.60,'glutes','back'],
+  ['HL','KL', 0.90,'quads','front'],
+  ['HR','KR', 0.90,'quads','front'],
+  ['KL','AL', 0.65,'calves','back'],
+  ['KR','AR', 0.65,'calves','back'],
+  ['AL','FL', 0.45,'calves','both'],
+  ['AR','FR', 0.45,'calves','both'],
+];
+
+// ── Muscle polygon overlays ────────────────────────────────
+const MUSCLE_POLYS = {
+  glutes:{facing:'back',color:'#ff6b9d',
+    getVerts:(j)=>[
+      [j.HL[0]-1.0,j.HL[1]+0.6,j.HL[2]-0.7],
+      [j.HR[0]+1.0,j.HR[1]+0.6,j.HR[2]-0.7],
+      [j.HR[0]+0.7,j.HR[1]-1.0,j.HR[2]-0.5],
+      [j.PV[0],    j.PV[1]-0.3,j.PV[2]-0.4],
+      [j.HL[0]-0.7,j.HL[1]-1.0,j.HL[2]-0.5],
+    ]
+  },
+  quads:{facing:'front',color:'#7c5cff',
+    getVerts:(j)=>[
+      [j.HL[0]-0.2,j.HL[1]-0.5,j.HL[2]+0.5],
+      [j.KL[0]-0.1,j.KL[1]+0.5,j.KL[2]+0.4],
+      [j.KR[0]+0.1,j.KR[1]+0.5,j.KR[2]+0.4],
+      [j.HR[0]+0.2,j.HR[1]-0.5,j.HR[2]+0.5],
+    ]
+  },
+  hamstrings:{facing:'back',color:'#23d5ab',
+    getVerts:(j)=>[
+      [j.HL[0]-0.3,j.HL[1]-0.5,j.HL[2]-0.6],
+      [j.KL[0]-0.2,j.KL[1]+0.4,j.KL[2]-0.5],
+      [j.KR[0]+0.2,j.KR[1]+0.4,j.KR[2]-0.5],
+      [j.HR[0]+0.3,j.HR[1]-0.5,j.HR[2]-0.6],
+    ]
+  },
+  lower_back:{facing:'back',color:'#ffb454',
+    getVerts:(j)=>[
+      [j.SL[0]*0.5,j.PV[1]+2.5,j.PV[2]-0.5],
+      [j.SR[0]*0.5,j.PV[1]+2.5,j.PV[2]-0.5],
+      [j.SR[0]*0.4,j.PV[1]+0.2,j.PV[2]-0.4],
+      [j.SL[0]*0.4,j.PV[1]+0.2,j.PV[2]-0.4],
+    ]
+  },
+};
+
+// ── Muscle display meta ────────────────────────────────────
+const MUSCLE_META = {
+  quads:      {label:'Quadriceps',  color:'#7c5cff'},
+  glutes:     {label:'Glutes',      color:'#ff6b9d'},
+  hamstrings: {label:'Hamstrings',  color:'#23d5ab'},
+  lower_back: {label:'Lower Back',  color:'#ffb454'},
+  calves:     {label:'Calves',      color:'#3ddc84'},
+  lats:       {label:'Lats',        color:'#5cb8ff'},
+  traps:      {label:'Traps',       color:'#c084fc'},
+  adductors:  {label:'Adductors',   color:'#fb923c'},
+};
+
+/* ══════════════════════════════════════════════════════════
+   PHASE 3 — RENDERING
+   ══════════════════════════════════════════════════════════ */
+
+// ── 3D projection (isometric with Y-axis rotation) ────────
+function project(pt, angle, cx, cy, scale, depthScale=0.18) {
+  const [x,y,z] = pt;
+  const c=Math.cos(angle), s=Math.sin(angle);
+  const rx = x*c - z*s;
+  const rz = x*s + z*c;
+  return {
+    sx: cx + rx*scale,
+    sy: cy - y*scale + rz*scale*depthScale,
+    depth: rz,
+  };
+}
+
+// ── Lerp helpers ──────────────────────────────────────────
+function lerp(a,b,t){ return a + (b-a)*t; }
+function lerpPt(a,b,t){ return [lerp(a[0],b[0],t), lerp(a[1],b[1],t), lerp(a[2],b[2],t)]; }
+function lerpJoints(jA, jB, t) {
+  const out = {};
+  for (const k of Object.keys(jA)) {
+    out[k] = lerpPt(jA[k], jB[k], t);
+  }
+  return out;
+}
+
+// ── Colour utilities ──────────────────────────────────────
+function hexToRgb(hex) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return [r,g,b];
+}
+function muscleColorStr(hex, activation, alpha) {
+  const [r,g,b]=hexToRgb(hex);
+  const a = activation * alpha;
+  return `rgba(${r},${g},${b},${a.toFixed(2)})`;
+}
+
+// ── Facing alpha: how visible is this surface from this view? ──
+function facingAlpha(facing, viewAngle) {
+  const isSide = Math.abs(Math.abs(viewAngle) - Math.PI*0.5) < 0.2;
+  if (facing==='both') return 0.85;
+  if (isSide) {
+    return facing==='back' ? 0.80 : 0.55;
+  }
+  // front-left or front-right view
+  return facing==='front' ? 0.90 : 0.30;
+}
+
+// ── Draw one capsule bone ─────────────────────────────────
+function drawBone(ctx, pA, pB, radius, color, alpha) {
+  const dx=pB.sx-pA.sx, dy=pB.sy-pA.sy;
+  const len=Math.sqrt(dx*dx+dy*dy);
+  if(len<1) return;
+  ctx.save();
+  ctx.strokeStyle=color;
+  ctx.globalAlpha=alpha;
+  ctx.lineWidth=Math.max(radius*2,2);
+  ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(pA.sx,pA.sy);
+  ctx.lineTo(pB.sx,pB.sy);
+  ctx.stroke();
+  // subtle highlight
+  ctx.strokeStyle='rgba(255,255,255,0.25)';
+  ctx.lineWidth=Math.max(radius*0.5,1);
+  ctx.beginPath();
+  ctx.moveTo(pA.sx,pA.sy);
+  ctx.lineTo(pB.sx,pB.sy);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ── Draw a muscle polygon ─────────────────────────────────
+function drawMuscPoly(ctx, verts, color, alpha) {
+  if(verts.length<3) return;
+  ctx.save();
+  ctx.globalAlpha=alpha;
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(verts[0].sx,verts[0].sy);
+  for(let i=1;i<verts.length;i++) ctx.lineTo(verts[i].sx,verts[i].sy);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha=alpha*0.6;
+  ctx.strokeStyle=color;
+  ctx.lineWidth=1;
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ── Draw ground plane ─────────────────────────────────────
+function drawGround(ctx, angle, cx, cy, scale) {
+  const corners=[[-3.5,0,-1.5],[3.5,0,-1.5],[3.5,0,3.5],[-3.5,0,3.5]];
+  const pts = corners.map(p=>project(p,angle,cx,cy,scale));
+  ctx.save();
+  ctx.globalAlpha=0.10;
+  ctx.fillStyle='#7c5cff';
+  ctx.beginPath();
+  ctx.moveTo(pts[0].sx,pts[0].sy);
+  for(let i=1;i<4;i++) ctx.lineTo(pts[i].sx,pts[i].sy);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+  // bar shadow / center line
+  const lineA=project([-0.3,0.01,0.5],angle,cx,cy,scale);
+  const lineB=project([0.3,0.01,0.5],angle,cx,cy,scale);
+  ctx.save();
+  ctx.globalAlpha=0.25;
+  ctx.strokeStyle='#23d5ab';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.moveTo(lineA.sx,lineA.sy);
+  ctx.lineTo(lineB.sx,lineB.sy);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ── Draw barbell ──────────────────────────────────────────
+function drawBar(ctx, joints, angle, cx, cy, scale, exKey) {
+  // bar runs between the wrists (hands)
+  const wl = project(joints.WL, angle, cx, cy, scale);
+  const wr = project(joints.WR, angle, cx, cy, scale);
+  ctx.save();
+  // shaft
+  ctx.globalAlpha=0.7;
+  ctx.strokeStyle='#c0c8d8';
+  ctx.lineWidth=5;
+  ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(wl.sx,wl.sy); ctx.lineTo(wr.sx,wr.sy); ctx.stroke();
+  // plates (left side)
+  const extL = project([joints.WL[0]-2.2, joints.WL[1], joints.WL[2]], angle, cx, cy, scale);
+  ctx.globalAlpha=0.55;
+  ctx.strokeStyle='#ffd166';
+  ctx.lineWidth=10;
+  ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(wl.sx,wl.sy); ctx.lineTo(extL.sx,extL.sy); ctx.stroke();
+  // plates (right side)
+  const extR = project([joints.WR[0]+2.2, joints.WR[1], joints.WR[2]], angle, cx, cy, scale);
+  ctx.globalAlpha=0.55;
+  ctx.beginPath(); ctx.moveTo(wr.sx,wr.sy); ctx.lineTo(extR.sx,extR.sy); ctx.stroke();
+  ctx.restore();
+}
+
+// ── Main render for one canvas ────────────────────────────
+function renderView(canvasId, joints, angle, activations, exKey) {
+  const cv = document.getElementById(canvasId);
+  const ctx = cv.getContext('2d');
+  const W=cv.width, H=cv.height;
+  ctx.clearRect(0,0,W,H);
+
+  // background gradient
+  const grd = ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,H*0.75);
+  grd.addColorStop(0,'#111827'); grd.addColorStop(1,'#0b0e14');
+  ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
+
+  const cx=W/2, cy=H*0.88;
+  const scale=W*0.085;
+
+  drawGround(ctx, angle, cx, cy, scale);
+
+  // Collect all draw calls with depth for painter's sort
+  const calls=[];
+
+  // muscle polygons
+  for(const [mkey,poly] of Object.entries(MUSCLE_POLYS)) {
+    const act = activations[mkey] || 0;
+    if(act<0.05) continue;
+    const fa = facingAlpha(poly.facing, angle);
+    if(fa<0.1) continue;
+    const rawVerts = poly.getVerts(joints);
+    const pverts = rawVerts.map(v=>project(v,angle,cx,cy,scale));
+    const avgDepth = pverts.reduce((s,p)=>s+p.depth,0)/pverts.length;
+    calls.push({depth:avgDepth, fn:()=>{
+      const color=MUSCLE_META[mkey]?.color||'#ffffff';
+      drawMuscPoly(ctx, pverts, color, act*fa*0.55);
+    }});
+  }
+
+  // bones
+  for(const [jA,jB,radius,mgroup,facing] of BONES) {
+    if(!joints[jA]||!joints[jB]) continue;
+    const pA=project(joints[jA],angle,cx,cy,scale);
+    const pB=project(joints[jB],angle,cx,cy,scale);
+    const avgDepth=(pA.depth+pB.depth)/2;
+    const act = activations[mgroup]||0;
+    const fa = facingAlpha(facing,angle);
+    const baseColor = '#3a4a60';
+    const actColor = MUSCLE_META[mgroup]?.color||'#7c8fa8';
+    const color = act>0.1 ? actColor : baseColor;
+    const alpha = 0.55 + act*0.35;
+    const r = radius * scale * 0.11;
+    calls.push({depth:avgDepth, fn:()=>drawBone(ctx,pA,pB,r,color,alpha*fa)});
+  }
+
+  // sort back-to-front
+  calls.sort((a,b)=>a.depth-b.depth);
+  for(const c of calls) c.fn();
+
+  // barbell (always on top)
+  drawBar(ctx, joints, angle, cx, cy, scale, exKey);
+
+  // joint dots
+  for(const [k,pt] of Object.entries(joints)) {
+    if(k.startsWith('F')) continue;
+    const p=project(pt,angle,cx,cy,scale);
+    ctx.save();
+    ctx.globalAlpha=0.7;
+    ctx.fillStyle='#e8eaf0';
+    ctx.beginPath(); ctx.arc(p.sx,p.sy,2.5,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   PHASE 4 — STATE, ANIMATION LOOP, UI
+   ══════════════════════════════════════════════════════════ */
+
+const VIEW_ANGLES = [
+  Math.PI*0.22,   // front-left
+  Math.PI*0.50,   // side (depthScale 0.08 for flatter)
+ -Math.PI*0.22,   // front-right
+];
+const VIEW_DS = [0.18, 0.08, 0.18]; // depth scale per view
+
+const ST = {
+  ex: 'squat',
+  t: 0,            // 0..numPhases-1 (float, animates)
+  playing: true,
+  speed: 3,
+  rafId: null,
+};
+
+function currentExercise() { return EXERCISES[ST.ex]; }
+function numPhases() { return currentExercise().phases.length; }
+
+// interpolate joints between phases
+function getJoints(t) {
+  const phases = currentExercise().phases;
+  const n = phases.length - 1;
+  const clamped = Math.max(0, Math.min(n, t));
+  const lo = Math.floor(clamped);
+  const hi = Math.min(lo+1, n);
+  const frac = clamped - lo;
+  if(lo===hi) return phases[lo].joints;
+  return lerpJoints(phases[lo].joints, phases[hi].joints, frac);
+}
+
+function getActivations(t) {
+  const phases = currentExercise().phases;
+  const n = phases.length - 1;
+  const lo = Math.floor(Math.max(0,Math.min(n,t)));
+  const hi = Math.min(lo+1,n);
+  const frac = Math.max(0,Math.min(n,t))-lo;
+  const a = phases[lo].muscles;
+  const b = phases[hi].muscles;
+  const out = {};
+  const keys = new Set([...Object.keys(a),...Object.keys(b)]);
+  for(const k of keys) out[k] = lerp(a[k]||0, b[k]||0, frac);
+  return out;
+}
+
+// ── Render all 3 canvases ─────────────────────────────────
+function renderAll() {
+  const joints = getJoints(ST.t);
+  const acts = getActivations(ST.t);
+  for(let i=0;i<3;i++) {
+    const cv = document.getElementById('cv'+i);
+    const ctx = cv.getContext('2d');
+    // override depth scale for side view
+    const origProject = window._origProject;
+    renderViewDS(cv, ctx, joints, VIEW_ANGLES[i], VIEW_DS[i], acts, ST.ex);
+  }
+}
+
+function renderViewDS(cv, ctx, joints, angle, depthScale, activations, exKey) {
+  const W=cv.width, H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  const grd=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,H*0.75);
+  grd.addColorStop(0,'#111827'); grd.addColorStop(1,'#0b0e14');
+  ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
+
+  const cx=W/2, cy=H*0.88, scale=W*0.085;
+  const proj=(pt)=>project(pt, angle, cx, cy, scale, depthScale);
+
+  // ground
+  const gc=[[-3.5,0,-1.5],[3.5,0,-1.5],[3.5,0,3.5],[-3.5,0,3.5]];
+  const gp=gc.map(p=>proj(p));
+  ctx.save(); ctx.globalAlpha=0.10; ctx.fillStyle='#7c5cff';
+  ctx.beginPath(); ctx.moveTo(gp[0].sx,gp[0].sy);
+  for(let i=1;i<4;i++) ctx.lineTo(gp[i].sx,gp[i].sy);
+  ctx.closePath(); ctx.fill(); ctx.restore();
+
+  const calls=[];
+
+  // muscle polygons
+  for(const [mkey,poly] of Object.entries(MUSCLE_POLYS)) {
+    const act=activations[mkey]||0;
+    if(act<0.05) continue;
+    const fa=facingAlpha(poly.facing,angle);
+    if(fa<0.1) continue;
+    const rv=poly.getVerts(joints).map(v=>proj(v));
+    const avgD=rv.reduce((s,p)=>s+p.depth,0)/rv.length;
+    const color=MUSCLE_META[mkey]?.color||'#fff';
+    calls.push({depth:avgD, fn:()=>drawMuscPoly(ctx,rv,color,act*fa*0.55)});
+  }
+
+  // bones
+  for(const [jA,jB,radius,mgroup,facing] of BONES) {
+    if(!joints[jA]||!joints[jB]) continue;
+    const pA=proj(joints[jA]), pB=proj(joints[jB]);
+    const avgD=(pA.depth+pB.depth)/2;
+    const act=activations[mgroup]||0;
+    const fa=facingAlpha(facing,angle);
+    const color=act>0.1?(MUSCLE_META[mgroup]?.color||'#7c8fa8'):'#3a4a60';
+    const alpha=0.55+act*0.35;
+    const r=radius*scale*0.11;
+    calls.push({depth:avgD, fn:()=>drawBone(ctx,pA,pB,r,color,alpha*fa)});
+  }
+
+  calls.sort((a,b)=>a.depth-b.depth);
+  for(const c of calls) c.fn();
+
+  // barbell
+  const wl=proj(joints.WL), wr=proj(joints.WR);
+  ctx.save();
+  ctx.globalAlpha=0.7; ctx.strokeStyle='#c0c8d8'; ctx.lineWidth=5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(wl.sx,wl.sy); ctx.lineTo(wr.sx,wr.sy); ctx.stroke();
+  const exL=proj([joints.WL[0]-2.2,joints.WL[1],joints.WL[2]]);
+  const exR=proj([joints.WR[0]+2.2,joints.WR[1],joints.WR[2]]);
+  ctx.globalAlpha=0.55; ctx.strokeStyle='#ffd166'; ctx.lineWidth=10;
+  ctx.beginPath(); ctx.moveTo(wl.sx,wl.sy); ctx.lineTo(exL.sx,exL.sy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(wr.sx,wr.sy); ctx.lineTo(exR.sx,exR.sy); ctx.stroke();
+  ctx.restore();
+
+  // joints
+  for(const [k,pt] of Object.entries(joints)) {
+    if(k.startsWith('F')) continue;
+    const p=proj(pt);
+    ctx.save(); ctx.globalAlpha=0.65; ctx.fillStyle='#e8eaf0';
+    ctx.beginPath(); ctx.arc(p.sx,p.sy,2.5,0,Math.PI*2); ctx.fill(); ctx.restore();
+  }
+}
+
+// ── UI update ─────────────────────────────────────────────
+function updateUI() {
+  const ex = currentExercise();
+  const n = numPhases();
+  const ti = Math.max(0,Math.min(n-1,ST.t));
+  const lo = Math.floor(ti);
+  const phase = ex.phases[lo];
+
+  document.getElementById('phaseName').textContent = phase.name;
+  document.getElementById('phaseCount').textContent = `Phase ${lo+1} / ${n}`;
+
+  // dots
+  const dotsEl = document.getElementById('phaseDots');
+  dotsEl.innerHTML = '';
+  for(let i=0;i<n;i++) {
+    const d=document.createElement('div');
+    d.className='pdot'+(i===lo?' on':i<lo?' done':'');
+    d.onclick=(()=>{const idx=i; return ()=>{ST.t=idx; ST.playing=false; updatePlayBtn(); renderAll(); updateUI();};})();
+    dotsEl.appendChild(d);
+  }
+
+  // angle grid
+  const grid = document.getElementById('cueGrid');
+  grid.innerHTML='';
+  for(const [label,val] of Object.entries(phase.angles)) {
+    grid.innerHTML+=`<div class="cue-card"><div class="cue-card-label">${label}</div><div class="cue-card-val">${val}</div></div>`;
+  }
+
+  // cue text
+  const cueEl = document.getElementById('cueText');
+  cueEl.innerHTML = phase.cues.map(c=>`• <strong>${c}</strong>`).join('<br>');
+
+  // muscle legend
+  const lgEl = document.getElementById('muscleLegend');
+  const acts = getActivations(ST.t);
+  const sorted = Object.entries(acts).filter(([,v])=>v>0.1).sort((a,b)=>b[1]-a[1]);
+  lgEl.innerHTML = sorted.map(([k,v])=>{
+    const m=MUSCLE_META[k]; if(!m) return '';
+    const pct=Math.round(v*100);
+    return `<div class="mleg"><div class="mleg-dot" style="background:${m.color}"></div>${m.label} <span style="color:${m.color};font-weight:700;margin-left:3px">${pct}%</span></div>`;
+  }).join('');
+}
+
+// ── Animation loop ────────────────────────────────────────
+let lastTime = 0;
+const HOLD_FRAMES = 60;
+let holdCounter = 0;
+let direction = 1;
+
+function animate(ts) {
+  if(ST.playing) {
+    const dt = ts - lastTime;
+    lastTime = ts;
+    const speedFactor = [0,0.004,0.007,0.010,0.014,0.020][Math.min(5,Math.max(1,Math.round(ST.speed)))];
+    const n = numPhases()-1;
+
+    if(holdCounter>0) {
+      holdCounter--;
+    } else {
+      ST.t += direction * speedFactor * (dt/16.67);
+      if(ST.t >= n) { ST.t=n; direction=-1; holdCounter=HOLD_FRAMES; }
+      if(ST.t <= 0) { ST.t=0; direction=1;  holdCounter=HOLD_FRAMES; }
+    }
+    renderAll();
+    updateUI();
+  }
+  ST.rafId = requestAnimationFrame(animate);
+}
+
+function togglePlay() {
+  ST.playing=!ST.playing;
+  lastTime = performance.now();
+  updatePlayBtn();
+}
+function updatePlayBtn() {
+  const btn=document.getElementById('playBtn');
+  btn.textContent=ST.playing?'⏸ Pause':'▶ Play';
+  btn.classList.toggle('paused',!ST.playing);
+}
+function setSpeed(v) { ST.speed=parseFloat(v); }
+function setEx(key) {
+  ST.ex=key;
+  ST.t=0; direction=1; holdCounter=0;
+  document.querySelectorAll('.etab').forEach(b=>b.classList.toggle('on',b.textContent.toLowerCase().includes(key==='squat'?'squat':'dead')));
+  renderAll(); updateUI();
+  if(ST.mode==='stages') renderStages();
+}
+
+/* ══════════════════════════════════════════════════════════
+   STAGES MODE — static filmstrip of each form position
+   ══════════════════════════════════════════════════════════ */
+ST.mode = 'anim';
+ST.stageView = 'three';
+const STAGE_VIEW_CFG = {
+  three: {angle: Math.PI*0.26, ds:0.18},  // 3/4 — shows depth + separates limbs
+  side:  {angle: Math.PI*0.50, ds:0.08},  // canonical side form-check angle
+  front: {angle: 0,            ds:0.18},  // straight-on front
+};
+
+function setMode(mode) {
+  ST.mode = mode;
+  const anim = document.getElementById('animMode');
+  const stages = document.getElementById('stagesMode');
+  document.getElementById('modeAnim').classList.toggle('on', mode==='anim');
+  document.getElementById('modeStages').classList.toggle('on', mode==='stages');
+  if(mode==='stages') {
+    anim.classList.add('hidden');
+    stages.classList.remove('hidden');
+    ST.playing=false; updatePlayBtn();
+    renderStages();
+  } else {
+    stages.classList.add('hidden');
+    anim.classList.remove('hidden');
+    ST.playing=true; lastTime=performance.now(); updatePlayBtn();
+  }
+}
+
+function setStageView(v) {
+  ST.stageView = v;
+  document.getElementById('vb_three').classList.toggle('on', v==='three');
+  document.getElementById('vb_side').classList.toggle('on', v==='side');
+  document.getElementById('vb_front').classList.toggle('on', v==='front');
+  renderStages();
+}
+
+function renderStages() {
+  const ex = currentExercise();
+  const grid = document.getElementById('stagesGrid');
+  const cfg = STAGE_VIEW_CFG[ST.stageView];
+  grid.innerHTML = '';
+
+  ex.phases.forEach((phase, idx) => {
+    const card = document.createElement('div');
+    card.className = 'stage-card';
+
+    // header
+    const angleChips = Object.entries(phase.angles)
+      .map(([k,v])=>`<div class="sa-chip"><b>${k}</b><span>${v}</span></div>`).join('');
+    const cues = phase.cues.map(c=>`• <strong>${c}</strong>`).join('<br>');
+
+    card.innerHTML = `
+      <div class="stage-head">
+        <div class="stage-num">${idx+1}</div>
+        <div class="stage-name">${phase.name}</div>
+      </div>
+      <canvas id="stage_cv${idx}" width="300" height="360"></canvas>
+      <div class="stage-angles">${angleChips}</div>
+      <div class="stage-cues">${cues}</div>`;
+    grid.appendChild(card);
+
+    // draw static figure for this phase
+    const cv = document.getElementById('stage_cv'+idx);
+    const ctx = cv.getContext('2d');
+    renderViewDS(cv, ctx, phase.joints, cfg.angle, cfg.ds, phase.muscles, ST.ex);
+  });
+}
+
+// ── Boot ──────────────────────────────────────────────────
+(function initFromURL(){
+  const p = new URLSearchParams(location.search);
+  const ex = p.get('ex');
+  const embedded = p.get('embedded') === '1';
+
+  if(embedded){
+    document.body.classList.add('embedded');
+    // hide exercise switcher tabs — exercise is set by the library
+    const exTabsEl = document.querySelector('.ex-tabs');
+    if(exTabsEl) exTabsEl.style.display='none';
+    // default to Stages mode for study (better for phone)
+    ST.mode = 'stages';
+  }
+
+  if(ex && EXERCISES[ex]){
+    ST.ex = ex;
+    document.querySelectorAll('.etab').forEach(b=>
+      b.classList.toggle('on', b.textContent.toLowerCase().includes(ex==='squat'?'squat':'dead')));
+  }
+
+  if(ST.mode === 'stages'){
+    document.getElementById('modeAnim').classList.remove('on');
+    document.getElementById('modeStages').classList.add('on');
+    document.getElementById('animMode').classList.add('hidden');
+    document.getElementById('stagesMode').classList.remove('hidden');
+  }
+})();
+
+requestAnimationFrame(ts=>{lastTime=ts; ST.rafId=requestAnimationFrame(animate);});
+renderAll();
+updateUI();
+if(ST.mode==='stages') renderStages();
+</script>
+</body>
+</html>

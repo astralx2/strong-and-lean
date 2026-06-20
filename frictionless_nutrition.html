@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Frictionless Nutrition — Interactive Demo</title>
+<style>
+  :root{
+    --bg:#0b0e14;--bg2:#11151f;--panel:#161b27;--panel2:#1c2230;--line:#283044;
+    --txt:#e8edf6;--mut:#9aa6bd;--dim:#6b768c;
+    --a1:#7c5cff;--a2:#23d5ab;--a3:#ff6b9d;--warn:#ffb454;--good:#3ddc84;--prot:#ffb454;
+    --grad:linear-gradient(135deg,#7c5cff,#23d5ab);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1100px 600px at 80% -10%,rgba(124,92,255,.18),transparent),
+        radial-gradient(800px 500px at -10% 110%,rgba(35,213,171,.12),transparent),var(--bg);
+       color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:26px 22px 70px}
+  a{color:var(--a2);text-decoration:none}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--a2)}
+  h1{font-size:31px;margin:8px 0 6px;font-weight:850;letter-spacing:-.4px}
+  p.lead{color:var(--mut);font-size:16px;max-width:780px;margin:0}
+  .back{font-size:13px;color:var(--mut)}
+  .stage{display:grid;grid-template-columns:300px 1fr;gap:34px;margin-top:26px;align-items:start}
+  @media(max-width:840px){.stage{grid-template-columns:1fr;justify-items:center}}
+
+  .phone{width:300px;height:620px;background:#05070c;border-radius:40px;padding:12px;position:relative;
+         box-shadow:0 34px 80px rgba(0,0,0,.6),0 0 0 1px var(--line)}
+  .phone::before{content:"";position:absolute;top:21px;left:50%;transform:translateX(-50%);width:96px;height:6px;background:#1a2030;border-radius:6px;z-index:6}
+  .screen{width:100%;height:100%;background:linear-gradient(180deg,#10141d,#0b0e15);border-radius:30px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .sbar{display:flex;justify-content:space-between;align-items:center;padding:15px 20px 8px;font-size:11px;color:var(--mut);font-weight:600}
+  .body{flex:1;overflow-y:auto;padding:6px 18px 14px}
+  .body::-webkit-scrollbar{width:0}
+  .foot{display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid var(--line);font-size:10px;color:var(--dim)}
+  .foot b{color:var(--a2)}
+
+  .h{font-size:13px;color:var(--mut);font-weight:600}
+  .title{font-size:20px;font-weight:850;margin:2px 0 10px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px;margin-bottom:11px}
+  .flex{display:flex;align-items:center;gap:10px}.between{justify-content:space-between}
+  .mut{color:var(--mut)}.mini{font-size:11.5px;color:var(--mut)}
+  .pill{font-size:10px;font-weight:700;padding:2px 9px;border-radius:12px;display:inline-block}
+  .pill.g{background:rgba(61,220,132,.16);color:var(--good)}
+  .pill.v{background:rgba(124,92,255,.18);color:#b9a7ff}
+  .pill.o{background:rgba(255,180,84,.16);color:var(--warn)}
+  .pill.low{background:rgba(255,180,84,.16);color:var(--warn)}
+  .pill.high{background:rgba(61,220,132,.14);color:var(--good)}
+
+  .bigbtn{background:var(--grad);color:#06251f;border:none;width:100%;padding:15px;border-radius:15px;font-size:16px;font-weight:850;cursor:pointer;transition:.12s}
+  .bigbtn:active{transform:scale(.97)}
+  .ghost{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:13px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;width:100%}
+  .ghost:active{transform:scale(.97)}
+
+  /* protein hero ring */
+  .pring{width:118px;height:118px;border-radius:50%;margin:6px auto 4px;display:flex;align-items:center;justify-content:center;flex-direction:column;
+        background:conic-gradient(var(--prot) var(--p,0%),#1a2030 0);position:relative;transition:--p .6s}
+  .pring::after{content:"";position:absolute;inset:11px;border-radius:50%;background:#0c0f16}
+  .pring b{position:relative;z-index:2;font-size:25px;font-weight:850}
+  .pring small{position:relative;z-index:2;color:var(--mut);font-size:10.5px}
+  .calbar{margin-top:4px}
+  .calbar .track{height:8px;background:#0c1018;border-radius:6px;position:relative;overflow:hidden;margin-top:5px}
+  .calbar .rangefill{position:absolute;height:100%;background:rgba(61,220,132,.18)}
+  .calbar .have{position:absolute;height:100%;background:var(--good);border-radius:6px}
+
+  .photo{height:130px;border-radius:13px;background:linear-gradient(135deg,#3a2a1e,#5a3b22 38%,#7a5a2e 60%,#46603a);position:relative;overflow:hidden;border:1px solid var(--line)}
+  .photo .tag{position:absolute;border:1.5px dashed rgba(255,255,255,.65);border-radius:8px;font-size:9px;color:#fff;padding:1px 5px;background:rgba(0,0,0,.4)}
+  .scanline{position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--a2),transparent);animation:scan 1s linear infinite}
+  @keyframes scan{0%{top:0}100%{top:127px}}
+
+  .item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:11px;margin-bottom:7px;border:1px solid var(--line);background:var(--bg2)}
+  .item.low{border-color:rgba(255,180,84,.5);background:rgba(255,180,84,.05)}
+  .item .nm{flex:1}.item .nm b{font-size:14px}
+  .dot{width:8px;height:8px;border-radius:50%}.dot.g{background:var(--good)}.dot.o{background:var(--warn)}
+
+  .opt{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--bg2);transition:.12s}
+  .opt:hover{border-color:var(--a2)}
+  .opt:active{transform:scale(.98)}
+
+  /* flick wheel picker (shared standard) */
+  .picker{position:relative;height:108px;width:96px;overflow:hidden;border:1px solid var(--line);border-radius:13px;background:var(--bg2)}
+  .picker .band{position:absolute;left:6px;right:6px;top:36px;height:36px;border-top:1px solid rgba(255,180,84,.55);border-bottom:1px solid rgba(255,180,84,.55);background:rgba(255,180,84,.07);border-radius:7px;z-index:1;pointer-events:none}
+  .picker .scroller{position:relative;z-index:2;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;background:transparent;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .picker .scroller::-webkit-scrollbar{display:none}
+  .picker .pad{height:36px}
+  .picker .opt2{height:36px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font-weight:800;font-size:15px;color:var(--mut);cursor:pointer;transition:color .12s,font-size .12s;border:none;background:none;margin:0}
+  .picker .opt2.sel{color:#fff;font-size:19px}
+  .picker .fade{position:absolute;left:0;right:0;height:38px;pointer-events:none;z-index:3}
+  .picker .fade.t{top:0;background:linear-gradient(var(--bg2),rgba(17,21,31,0))}
+  .picker .fade.b{bottom:0;background:linear-gradient(rgba(17,21,31,0),var(--bg2))}
+
+  .celebrate{position:absolute;inset:0;background:rgba(8,11,18,.93);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:10;text-align:center;padding:24px}
+  .celebrate.on{display:flex;animation:fade .3s}
+  .celebrate .em{font-size:52px;animation:pop .5s}
+  .celebrate .t{font-size:21px;font-weight:850;color:var(--prot);margin:8px 0 4px}
+  @keyframes pop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .confetti{position:absolute;width:9px;height:14px;top:-20px;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(650px) rotate(540deg);opacity:.2}}
+
+  .hud{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;max-width:520px}
+  .hud h3{margin:0 0 4px;font-size:16px}.hud .sub{font-size:13px;color:var(--mut);margin-bottom:14px}
+  .meters{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .meter{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .meter .n{font-size:25px;font-weight:850}
+  .meter .n.you{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .meter .n.old{color:var(--a3)}
+  .meter .l{font-size:11.5px;color:var(--mut);margin-top:2px}
+  .savebar{height:9px;background:#0c1018;border-radius:6px;overflow:hidden;margin:14px 0 6px}
+  .savebar i{display:block;height:100%;background:var(--grad);width:0;transition:width .5s}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .legend span{font-size:11.5px;color:var(--mut);background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:5px 9px}
+  .note{font-size:12.5px;color:var(--dim);margin-top:14px;line-height:1.5}
+  .restartbtn{margin-top:14px;background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:10px;padding:9px 14px;font-size:12.5px;cursor:pointer}
+  .kbd{font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:5px;padding:1px 6px;background:var(--bg2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="back"><a href="wedge_explorer.html">‹ Wedge Explorer</a> · <a href="frictionless_logging.html">workout-logging demo ›</a></div>
+  <div class="eyebrow">Craft demo · "effortless honesty"</div>
+  <h1>Log a day of eating — no search, no typing, no guilt</h1>
+  <p class="lead">The north-star meal-logging loop from <code>03_PRODUCT/07_deepdive_nutrition_logging.md</code>, playable. Recurring meals are <b>predicted</b> (one tap); new meals are a <b>photo</b> the AI reads — and it's honest about what it's unsure of, so you fix only that, with a <b>flick-wheel</b>. Protein is the hero; targets are a calm range. The meter shows the friction you <i>didn't</i> have.</p>
+
+  <div class="stage">
+    <div class="phone"><div class="screen">
+      <div class="sbar"><span id="clock">9:41</span><span id="ctx">Today</span></div>
+      <div class="body" id="screen"></div>
+      <div class="foot"><span id="f1"><b>Today</b></span><span id="f2">Log</span><span>Progress</span><span>You</span></div>
+      <div class="celebrate" id="celebrate">
+        <div class="em" id="celEm">💪</div>
+        <div class="t" id="celT">Protein goal hit!</div>
+        <div class="mini" id="celSub"></div>
+        <button class="bigbtn" style="margin-top:18px;max-width:200px" onclick="closeCel()">Nice 🎉</button>
+      </div>
+    </div></div>
+
+    <div>
+      <div class="hud">
+        <h3>Friction meter <span class="pill v" style="vertical-align:middle">live</span></h3>
+        <div class="sub">Watch the search-and-type tax disappear as you log a full day.</div>
+        <div class="meters">
+          <div class="meter"><div class="n you" id="mYou">0</div><div class="l">your taps today</div></div>
+          <div class="meter"><div class="n old" id="mOld">0</div><div class="l">typical-app taps for the same</div></div>
+          <div class="meter"><div class="n you" id="mTyped">0</div><div class="l">numbers / foods you typed</div></div>
+          <div class="meter"><div class="n you" id="mSearch">0</div><div class="l">database searches you did</div></div>
+        </div>
+        <div class="savebar"><i id="saveFill"></i></div>
+        <div class="mini" id="saveLabel">Log your meals to see the difference.</div>
+        <div class="legend">
+          <span>🥣 recurring meals → 1 tap</span>
+          <span>📷 photo reads new meals</span>
+          <span>🎯 confidence-aware fixes</span>
+          <span>🎚 flick-wheel portions</span>
+          <span>💛 protein-first, zero guilt</span>
+        </div>
+        <div class="note">
+          Play the day: tap <b>your usual</b> breakfast (1 tap), <b>snap</b> lunch then flick the low-confidence rice portion, and close your protein with a <b>dinner option</b>. Notice: you never open a search box, never type a food, never see a red “over” wall.
+          <br><br><span class="kbd">R</span> = restart.
+        </div>
+        <button class="restartbtn" onclick="reset()">↻ Restart demo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+function fresh(){return {
+  meal:"breakfast", sub:null,
+  proteinGoal:130, protein:0,
+  calLo:1600, calHi:2000, cal:0,
+  streak:8, logged:[],
+  you:0, old:0, typed:0, search:0,
+  lunch:{ riceCups:1.25 }
+};}
+let S=fresh();
+
+const MEALS={
+  breakfast:{label:"Oats, banana & whey", cal:420, p:32, seen:"You've had this 9 of the last 12 mornings"},
+};
+function riceCal(c){return Math.round(c*160);}
+function riceP(c){return Math.round(c*3.2);}
+function lunchTotals(){
+  const c=S.lunch.riceCups;
+  const cal=360+riceCal(c)+40;      // chicken + rice + broccoli
+  const p=40+riceP(c)+4;
+  return {cal,p};
+}
+
+function hud(){
+  $("mYou").textContent=S.you; $("mOld").textContent=S.old;
+  $("mTyped").textContent=S.typed; $("mSearch").textContent=S.search;
+  const pct=S.old>0?Math.round((1-S.you/S.old)*100):0;
+  $("saveFill").style.width=Math.max(0,pct)+"%";
+  $("saveLabel").innerHTML=S.old>0
+    ?"<b style='color:var(--good)'>"+pct+"% fewer taps</b> than a typical app — <b>"+S.typed+"</b> foods typed, <b>"+S.search+"</b> searches. (A typical app would've needed ~"+S.oldSearch+" searches.)"
+    :"Log your meals to see the difference.";
+}
+S.oldSearch=0;
+
+function proteinRing(){
+  const pct=Math.min(100,Math.round(S.protein/S.proteinGoal*100));
+  return `<div class="pring" style="--p:${pct}%"><b>${S.protein}g</b><small>protein · goal ${S.proteinGoal}</small></div>`;
+}
+function calRow(){
+  const lo=S.calLo, hi=S.calHi, max=hi*1.25;
+  const rangeL=lo/max*100, rangeW=(hi-lo)/max*100, have=Math.min(100,S.cal/max*100);
+  const inRange=S.cal>=lo&&S.cal<=hi;
+  return `<div class="calbar"><div class="flex between"><span class="mini">Calories <span class="mut">(a range, not a verdict)</span></span>
+      <b style="font-size:13px;color:${inRange?'var(--good)':'var(--txt)'}">${S.cal.toLocaleString()}</b></div>
+    <div class="track"><div class="rangefill" style="left:${rangeL}%;width:${rangeW}%"></div><div class="have" style="width:${have}%"></div></div>
+    <div class="mini" style="margin-top:4px">${S.cal===0?'target '+lo+'–'+hi:(inRange?'In your range — nice.':(S.cal<lo?'Room to spare today.':'A little over — tomorrow’s a fresh range.'))}</div></div>`;
+}
+
+// ---------- flick wheel ----------
+function buildPicker(mount,values,current,fmt,onChange){
+  const ROW=36; mount.className="picker";
+  mount.innerHTML='<div class="band"></div><div class="scroller"><div class="pad"></div>'+
+    values.map((v,i)=>'<div class="opt2" data-i="'+i+'">'+fmt(v)+'</div>').join('')+
+    '<div class="pad"></div></div><div class="fade t"></div><div class="fade b"></div>';
+  const sc=mount.querySelector(".scroller"), opts=[...mount.querySelectorAll(".opt2")];
+  let idx=values.indexOf(current); if(idx<0)idx=0;
+  const mark=i=>opts.forEach((o,k)=>o.classList.toggle("sel",k===i));
+  const center=(i,sm)=>sc.scrollTo({top:i*ROW,behavior:sm?"smooth":"auto"});
+  requestAnimationFrame(()=>{center(idx,false);mark(idx);});
+  let t=null;
+  sc.addEventListener("scroll",()=>{const i=Math.max(0,Math.min(values.length-1,Math.round(sc.scrollTop/ROW)));mark(i);
+    clearTimeout(t);t=setTimeout(()=>{if(i!==idx){idx=i;onChange(values[i]);}},80);});
+  opts.forEach(o=>o.addEventListener("click",()=>center(+o.dataset.i,true)));
+}
+
+// ---------- actions ----------
+function logUsual(){
+  const m=MEALS.breakfast;
+  S.you+=1; S.old+=10; S.oldSearch+=2;      // typical: search+pick+portion for 2 items
+  S.protein+=m.p; S.cal+=m.cal; S.logged.push("Breakfast");
+  S.meal="lunch"; render();
+}
+function snapLunch(){ S.you+=1; S.old+=15; S.oldSearch+=3; S.sub="analyzing"; render();
+  setTimeout(()=>{ S.sub="result"; render(); },1000); }
+function saveLunch(){
+  const t=lunchTotals();
+  if(S.lunch.riceCups!==1.25) S.decisions=(S.decisions||0)+1;
+  S.you+=1; S.protein+=t.p; S.cal+=t.cal; S.logged.push("Lunch");
+  S.meal="dinner"; S.sub=null; render();
+}
+function pickDinner(name,cal,p){
+  S.you+=1; S.old+=8; S.oldSearch+=1;
+  S.protein+=p; S.cal+=cal; S.logged.push(name);
+  S.meal="done";
+  if(S.protein>=S.proteinGoal){ fireCel("💪","Protein goal hit!", S.protein+"g of "+S.proteinGoal+"g — muscle protected. Streak "+(S.streak+1)+" 🔥"); }
+  else render();
+}
+function liveLunch(){
+  const t=lunchTotals();
+  const sb=$("saveBtn"); if(sb) sb.textContent="✓ Looks right · Save ("+t.p+"g protein)";
+  const rl=$("riceLine"); if(rl) rl.textContent=S.lunch.riceCups+" cup · "+riceCal(S.lunch.riceCups)+" cal";
+  const mp=$("mealP"); if(mp) mp.textContent=t.p+"g";
+  const mc=$("mealC"); if(mc) mc.textContent=t.cal;
+}
+
+// ---------- celebrate ----------
+function fireCel(em,t,sub){
+  $("celEm").textContent=em; $("celT").textContent=t; $("celSub").textContent=sub;
+  $("celebrate").classList.add("on");
+  const cols=["#7c5cff","#23d5ab","#ff6b9d","#ffb454","#3ddc84"];
+  for(let i=0;i<26;i++){const c=document.createElement("div");c.className="confetti";
+    c.style.left=Math.random()*100+"%";c.style.background=cols[i%cols.length];
+    c.style.animationDuration=(1.2+Math.random()*1.2)+"s";c.style.animationDelay=(Math.random()*.3)+"s";
+    $("celebrate").appendChild(c);}
+}
+function closeCel(){ $("celebrate").classList.remove("on"); $("celebrate").querySelectorAll(".confetti").forEach(x=>x.remove()); render(); }
+
+// ---------- render ----------
+function render(){
+  hud();
+  const scr=$("screen");
+
+  if(S.meal==="breakfast"){
+    $("ctx").textContent="Good morning";
+    const m=MEALS.breakfast;
+    scr.innerHTML=`${proteinRing()}${calRow()}
+      <div class="card" style="border-color:var(--prot);margin-top:12px">
+        <div class="flex between" style="margin-bottom:6px"><b>Breakfast — your usual?</b><span class="pill v">predicted</span></div>
+        <div class="mini">${m.label} · ${m.cal} cal · <b style="color:var(--prot)">${m.p}g protein</b></div>
+        <div class="mini" style="margin-top:4px">${m.seen}</div>
+      </div>
+      <button class="bigbtn" onclick="logUsual()">✓ Tap your usual</button>
+      <button class="ghost" style="margin-top:9px" onclick="snapLunch()">📷 Snap something else</button>
+      <div class="mini" style="text-align:center;margin-top:10px">1 tap. No search. It already knew.</div>`;
+    return;
+  }
+
+  if(S.meal==="lunch" && S.sub==="analyzing"){
+    $("ctx").textContent="reading your plate…";
+    scr.innerHTML=`<div class="title" style="margin-top:8px">Lunch</div>
+      <div class="photo"><div class="scanline"></div>
+        <span class="tag" style="top:14px;left:14px">chicken</span>
+        <span class="tag" style="bottom:18px;left:30px">rice</span>
+        <span class="tag" style="top:42px;right:16px">broccoli</span></div>
+      <div class="card" style="text-align:center;margin-top:12px"><span class="mini">Reading your plate… estimating portions</span></div>`;
+    return;
+  }
+
+  if(S.meal==="lunch" && S.sub==="result"){
+    $("ctx").textContent="confirm — fix only what's unsure";
+    const t=lunchTotals();
+    scr.innerHTML=`
+      <div class="flex between"><div class="title" style="margin:2px 0 8px">Grilled chicken bowl</div><div style="text-align:right"><b id="mealC" style="font-size:20px">${t.cal}</b><div class="mini">cal</div></div></div>
+      <div class="item"><span class="dot g"></span><div class="nm"><b>Chicken</b> <span class="mini">220g · 40g protein</span></div><span class="pill high">sure</span></div>
+      <div class="item low"><span class="dot o"></span><div class="nm"><b>Rice</b> <span class="mini" id="riceLine">${S.lunch.riceCups} cup · ${riceCal(S.lunch.riceCups)} cal</span></div>
+        <div id="ricePicker"></div></div>
+      <div class="item"><span class="dot g"></span><div class="nm"><b>Broccoli</b> <span class="mini">1 cup · 4g protein</span></div><span class="pill high">sure</span></div>
+      <div class="card" style="border-color:var(--prot);padding:11px 14px"><div class="flex between"><span class="mini">Protein (your hero number)</span><b id="mealP" style="color:var(--prot);font-size:16px">${t.p}g</b></div></div>
+      <button class="bigbtn" id="saveBtn" onclick="saveLunch()">✓ Looks right · Save (${t.p}g protein)</button>
+      <div class="mini" style="text-align:center;margin-top:9px">Only the unsure item asks for you — flick the rice. ~8s, 0 typed.</div>`;
+    const rp=$("ricePicker");
+    const vals=[]; for(let c=0.25;c<=2.5;c+=0.25) vals.push(Math.round(c*100)/100);
+    if(rp) buildPicker(rp, vals, S.lunch.riceCups, v=>v+"c", v=>{ S.lunch.riceCups=v; liveLunch(); });
+    return;
+  }
+
+  if(S.meal==="lunch"){ // home prompt for lunch
+    $("ctx").textContent="Lunchtime";
+    scr.innerHTML=`${proteinRing()}${calRow()}
+      <div class="card" style="margin-top:12px"><div class="flex between" style="margin-bottom:6px"><b>Lunch 🥗</b><span class="pill o">~12:30, you usually eat now</span></div>
+        <div class="mini">Snap it and we'll read the plate — or say it.</div></div>
+      <button class="bigbtn" onclick="snapLunch()">📷 Snap my lunch</button>
+      <button class="ghost" style="margin-top:9px" onclick="snapLunch()">🎙 “chicken bowl with rice”</button>
+      <div class="mini" style="text-align:center;margin-top:10px">No search box. No scrolling 17 entries.</div>`;
+    return;
+  }
+
+  if(S.meal==="dinner"){
+    $("ctx").textContent="closing your protein";
+    const gap=Math.max(0,S.proteinGoal-S.protein);
+    scr.innerHTML=`${proteinRing()}${calRow()}
+      <div class="card" style="border-color:var(--prot);margin-top:12px"><b>${gap}g protein to go</b>
+        <div class="mini" style="margin-top:4px">Options you actually like — one tap to log dinner:</div></div>
+      <div class="opt" onclick="pickDinner('Salmon + potatoes',620,50)"><div><b>Salmon, potatoes & greens</b><div class="mini">620 cal</div></div><b style="color:var(--prot)">50g</b></div>
+      <div class="opt" onclick="pickDinner('Steak rice bowl',640,52)"><div><b>Steak rice bowl</b><div class="mini">640 cal</div></div><b style="color:var(--prot)">52g</b></div>
+      <div class="opt" onclick="pickDinner('Tofu stir-fry',560,50)"><div><b>Tofu & edamame stir-fry</b><div class="mini">560 cal</div></div><b style="color:var(--prot)">50g</b></div>
+      <button class="ghost" style="margin-top:4px" onclick="pickDinner('Greek yogurt + berries',240,50)">🎙 “greek yogurt and a scoop of whey”</button>`;
+    return;
+  }
+
+  if(S.meal==="done"){
+    $("ctx").textContent="your day";
+    const pct=S.old>0?Math.round((1-S.you/S.old)*100):0;
+    const inRange=S.cal>=S.calLo&&S.cal<=S.calHi;
+    scr.innerHTML=`<div class="title" style="margin-top:10px">Most consistent week yet 💛</div>
+      ${proteinRing()}
+      <div class="card"><div class="flex between"><span class="mini">Protein</span><b style="color:var(--prot)">${S.protein} / ${S.proteinGoal}g ✓</b></div>
+        <div class="flex between" style="margin-top:6px"><span class="mini">Calories</span><b style="color:${inRange?'var(--good)':'var(--txt)'}">${S.cal.toLocaleString()} ${inRange?'· in range':''}</b></div>
+        <div class="flex between" style="margin-top:6px"><span class="mini">Logged</span><b>${S.logged.length} meals</b></div>
+        <div class="flex between" style="margin-top:6px"><span class="mini">Streak</span><b style="color:var(--good)">${S.streak+1} days 🔥 <span class="mini">(grace banked)</span></b></div></div>
+      <div class="card" style="border-color:var(--a1)"><b style="font-size:14px">You barely logged at all.</b>
+        <div class="flex between" style="margin-top:8px"><span class="mini">Your taps</span><b>${S.you}</b></div>
+        <div class="flex between" style="margin-top:5px"><span class="mini">A typical app</span><b style="color:var(--a3)">${S.old}</b></div>
+        <div class="flex between" style="margin-top:5px"><span class="mini">Foods typed</span><b>${S.typed}</b></div>
+        <div class="flex between" style="margin-top:5px"><span class="mini">Searches</span><b>${S.search} <span class="mini">vs ~${S.oldSearch}</span></b></div>
+        <div class="mini" style="margin-top:9px;color:var(--good)">${pct}% less friction — and not one guilt-trip. Effortless honesty.</div></div>
+      <button class="bigbtn" onclick="reset()">↻ Run the day again</button>`;
+    return;
+  }
+}
+
+function reset(){ closeCel(); S=fresh(); render(); }
+document.addEventListener("keydown",e=>{ if(e.key==="r"||e.key==="R") reset(); });
+setInterval(()=>{const d=new Date();$("clock").textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});},1000);
+render();
+</script>
+</body>
+</html>
