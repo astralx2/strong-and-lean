@@ -29,8 +29,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 *{-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
-html,body{min-height:100%;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
-body{display:flex;flex-direction:row;align-items:flex-start;margin:0;padding:0;min-height:100vh}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;height:100%}
 
 /* ── SIDEBAR (desktop only, hidden mobile) ── */
 .sidebar{display:none;width:240px;flex-shrink:0;min-height:100vh;background:rgba(8,10,16,.98);border-right:1px solid var(--bdr);flex-direction:column;padding:28px 16px;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:40}
@@ -49,19 +49,22 @@ body{display:flex;flex-direction:row;align-items:flex-start;margin:0;padding:0;m
 .sb-divider{height:1px;background:var(--bdr);margin:20px 0}
 
 /* ── APP SHELL (main content column) ── */
-.phone{flex:1;min-height:100vh;background:var(--bg);display:flex;flex-direction:column;position:relative;overflow-x:hidden;min-width:0}
+.phone{flex:1;height:100%;background:var(--bg);display:flex;flex-direction:column;position:relative;min-width:0;overflow:hidden}
+/* scrollable area between header and nav */
+.main-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;min-height:0;scrollbar-width:none}
+.main-scroll::-webkit-scrollbar{display:none}
 
 /* ── APP HEADER ── */
-.app-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;position:sticky;top:0;background:rgba(11,14,20,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:20;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.app-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:rgba(11,14,20,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);flex-shrink:0}
 .app-logo{font-size:16px;font-weight:900;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.4px}
 .app-user{font-size:13px;font-weight:600;color:var(--dim)}
 
 /* ── VIEWS ── */
-.view{display:none;flex-direction:column;flex:1;padding-bottom:80px;overflow-y:auto}
+.view{display:none;flex-direction:column;padding-bottom:24px}
 .view.active{display:flex}
 
 /* ── MOBILE NAV BAR ── */
-.nav{position:fixed;bottom:0;left:0;right:0;background:rgba(11,14,20,.96);border-top:1px solid var(--bdr);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;padding:10px 0 max(14px,env(safe-area-inset-bottom));z-index:30}
+.nav{flex-shrink:0;background:rgba(11,14,20,.96);border-top:1px solid var(--bdr);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;padding:10px 0 max(14px,env(safe-area-inset-bottom));z-index:30}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:color .15s;color:var(--dim);font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
 .nav-item.active{color:var(--a1)}
 .nav-icon{font-size:20px}
@@ -70,8 +73,10 @@ body{display:flex;flex-direction:row;align-items:flex-start;margin:0;padding:0;m
 @media(min-width:900px){
   .sidebar{display:flex}
   .nav{display:none}
+  .app-header{display:none}
   .phone{border-left:1px solid var(--bdr)}
-  .view{padding-bottom:40px}
+  .view{padding-bottom:32px}
+  .main-scroll{padding-bottom:0}
   .sec-hd{padding:28px 32px 0}
   .ring-wrap{padding-top:28px}
   .metrics-row{margin:16px 24px 0}
@@ -82,7 +87,6 @@ body{display:flex;flex-direction:row;align-items:flex-start;margin:0;padding:0;m
   .story-card{margin:20px 24px 0}
   .prog-section{margin:18px 24px 0}
   .share-btn{margin:18px 24px 0}
-  .app-header{padding:18px 32px}
 }
 
 /* ── SECTION HEADER ── */
@@ -269,6 +273,7 @@ body{display:flex;flex-direction:row;align-items:flex-start;margin:0;padding:0;m
     <span class="app-user" id="app-user">Ryan 💪</span>
   </header>
 
+  <div class="main-scroll" id="main-scroll">
   <!-- ══════════ TODAY VIEW ══════════ -->
   <div class="view active" id="view-today">
     <div class="sec-hd">
@@ -276,7 +281,6 @@ body{display:flex;flex-direction:row;align-items:flex-start;margin:0;padding:0;m
         <div class="sec-title">Today</div>
         <div class="sec-sub">Wednesday, June 18</div>
       </div>
-      <div class="sec-date">Ryan 💪</div>
     </div>
 
     <!-- Readiness Ring -->
@@ -551,6 +555,8 @@ body{display:flex;flex-direction:row;align-items:flex-start;margin:0;padding:0;m
       <div style="font-size:11px;color:var(--dim);margin-top:3px">5/3/1, GZCLP, Starting Strength…</div>
     </div>
   </div>
+
+  </div><!-- end .main-scroll -->
 
   <!-- ── PROTEIN INPUT OVERLAY ── -->
   <div id="prot-overlay" style="display:none;position:fixed;inset:0;background:rgba(8,11,18,.96);z-index:50;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center">
