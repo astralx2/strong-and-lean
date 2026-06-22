@@ -1207,6 +1207,11 @@ function renderWeekStrip(){
 
 // ══════════ BOOT ══════════
 initToday();
+// Handle ?view= param from sidebar links on other pages
+(function(){
+  const v=new URLSearchParams(location.search).get('view');
+  if(v&&['trends','story','plans'].includes(v))setView(v);
+})();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 </script>
 </body>

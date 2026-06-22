@@ -19,26 +19,21 @@
   --sec-fill:rgba(35,213,171,0.35); --sec-stroke:#23d5ab;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;overflow:hidden;margin:0;padding:0}
 body{
   background:#07090d;
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  display:flex;justify-content:center;align-items:center;
-  min-height:100vh;padding:20px;
+  display:flex;flex-direction:row;align-items:stretch;height:100%;overflow:hidden;margin:0;padding:0;
 }
 
 /* ── Phone frame ── */
 .phone{
-  width:390px;height:844px;
-  background:var(--bg);
-  border-radius:44px;
-  box-shadow:0 0 0 8px #1a1f2e,0 0 0 10px #252d3d,0 40px 80px rgba(0,0,0,.7);
-  overflow:hidden;position:relative;
-  display:flex;flex-direction:column;
+  flex:1;height:100%;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);
 }
 
 /* ── Header ── */
 .hdr{
-  padding:52px 20px 12px;
+  padding:14px 20px 12px;
   background:var(--surface);
   border-bottom:1px solid var(--border);
   flex-shrink:0;
@@ -155,14 +150,14 @@ body{
 
 /* ── Overlay ── */
 .overlay{
-  position:absolute;inset:0;background:rgba(7,9,13,.65);
+  position:fixed;inset:0;background:rgba(7,9,13,.65);
   z-index:9;opacity:0;pointer-events:none;transition:opacity .28s;
 }
 .overlay.show{opacity:1;pointer-events:all}
 
 /* ── Detail panel ── */
 .detail{
-  position:absolute;bottom:0;left:0;right:0;
+  position:fixed;bottom:0;left:0;right:0;
   background:var(--card);border-radius:24px 24px 0 0;
   border-top:1px solid var(--border);
   transform:translateY(100%);
@@ -278,7 +273,7 @@ body{
 
 /* ── Form-guide overlay (full phone takeover) ── */
 .form-overlay{
-  position:absolute;inset:0;z-index:20;
+  position:fixed;inset:0;z-index:20;
   background:var(--bg);
   display:flex;flex-direction:column;
   transform:translateX(100%);
@@ -340,7 +335,7 @@ body{
 
 /* ── Quick-add toast ── */
 .add-toast{
-  position:absolute;bottom:76px;left:14px;right:14px;
+  position:fixed;bottom:20px;left:14px;right:14px;
   background:linear-gradient(135deg,#7c5cff,#23d5ab);
   border-radius:16px;padding:12px 16px;
   display:flex;align-items:center;justify-content:space-between;
@@ -358,6 +353,31 @@ body{
   transition:background .15s;
 }
 .add-toast-link:hover{background:rgba(255,255,255,.18)}
+
+/* ── Sidebar ── */
+.sidebar{display:none;flex-direction:column;width:240px;min-width:240px;height:100%;background:#10131c;border-right:1px solid var(--border);flex-shrink:0}
+.sb-brand{padding:24px 20px 16px}
+.sb-logo{font-size:16px;font-weight:800;background:linear-gradient(135deg,#7c5cff,#23d5ab);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sb-nav{display:flex;flex-direction:column;gap:2px;padding:0 10px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;font-size:14px;font-weight:600;color:var(--sub);cursor:pointer;transition:all .15s;text-decoration:none}
+.sb-item:hover{background:rgba(124,92,255,.1);color:var(--text)}
+.sb-item.active{background:rgba(124,92,255,.16);color:#b9a7ff}
+.sb-divider{height:1px;background:var(--border);margin:12px 10px}
+.sb-user{padding:16px 20px;font-size:13px;color:var(--dim);margin-top:auto}
+/* ── Mobile header ── */
+.app-header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.app-logo{font-size:15px;font-weight:800;background:linear-gradient(135deg,#7c5cff,#23d5ab);-webkit-background-clip:text;background-clip:text;color:transparent}
+.app-back{font-size:13px;color:var(--sub);text-decoration:none}
+/* ── Desktop breakpoint ── */
+@media(min-width:900px){
+  .sidebar{display:flex}
+  .app-header{display:none}
+  .hdr{padding:18px 24px 14px}
+  .tabs{padding:10px 24px 0}
+  .filter-row{padding:10px 20px}
+  .detail{max-width:600px;left:50%;transform:translate(-50%,100%)}
+  .detail.open{transform:translate(-50%,0)}
+}
 
 /* ── Stickman animation keyframes ── */
 @keyframes push-h{
@@ -400,7 +420,26 @@ body{
 </style>
 </head>
 <body>
+<aside class="sidebar">
+  <div class="sb-brand"><span class="sb-logo">Strong &amp; Lean</span></div>
+  <div class="sb-nav">
+    <a class="sb-item" href="frictionless_dashboard.html?view=today">☀️ Today</a>
+    <a class="sb-item" href="frictionless_dashboard.html?view=trends">📈 Trends</a>
+    <a class="sb-item" href="frictionless_dashboard.html?view=story">🏆 Progress</a>
+    <a class="sb-item" href="frictionless_dashboard.html?view=plans">📋 Plans</a>
+    <a class="sb-item active" href="exercise_library.html">📚 Library</a>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-user">Ryan 💪</div>
+</aside>
 <div class="phone">
+
+  <!-- MOBILE HEADER -->
+  <header class="app-header">
+    <a class="app-back" href="frictionless_dashboard.html">‹ Dashboard</a>
+    <span class="app-logo">Strong &amp; Lean</span>
+    <span style="width:70px"></span>
+  </header>
 
   <!-- HEADER -->
   <div class="hdr">

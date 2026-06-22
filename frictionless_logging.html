@@ -17,10 +17,24 @@
     --grad:linear-gradient(135deg,#7c5cff,#23d5ab);
   }
   *{box-sizing:border-box}
-  body{margin:0;background:radial-gradient(1100px 600px at 80% -10%,rgba(124,92,255,.18),transparent),
+  html{height:100%;overflow:hidden}
+  body{margin:0;height:100%;background:radial-gradient(1100px 600px at 80% -10%,rgba(124,92,255,.18),transparent),
         radial-gradient(800px 500px at -10% 110%,rgba(35,213,171,.12),transparent),var(--bg);
-       color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1080px;margin:0 auto;padding:26px 22px 70px}
+       color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;
+       display:flex;flex-direction:row;align-items:stretch}
+  /* ── Sidebar ── */
+  .sidebar{display:none;flex-direction:column;width:240px;min-width:240px;height:100%;background:#10131c;border-right:1px solid var(--line);flex-shrink:0}
+  .sb-brand{padding:24px 20px 16px}
+  .sb-logo{font-size:16px;font-weight:800;background:linear-gradient(135deg,#7c5cff,#23d5ab);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sb-nav{display:flex;flex-direction:column;gap:2px;padding:0 10px}
+  .sb-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;font-size:14px;font-weight:600;color:var(--mut);cursor:pointer;transition:all .15s;text-decoration:none}
+  .sb-item:hover{background:rgba(124,92,255,.1);color:var(--txt)}
+  .sb-item.active{background:rgba(124,92,255,.16);color:#b9a7ff}
+  .sb-divider{height:1px;background:var(--line);margin:12px 10px}
+  .sb-user{padding:16px 20px;font-size:13px;color:var(--dim);margin-top:auto}
+  /* ── Content area ── */
+  .content-area{flex:1;height:100%;overflow-y:auto;display:flex;flex-direction:column}
+  .wrap{max-width:1080px;margin:0 auto;padding:26px 22px 70px;width:100%}
   a{color:var(--a2);text-decoration:none}
   .eyebrow{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--a2)}
   h1{font-size:32px;margin:8px 0 6px;font-weight:850;letter-spacing:-.4px}
@@ -28,11 +42,10 @@
   .back{font-size:13px;color:var(--mut)}
 
   .stage{display:grid;grid-template-columns:300px 1fr;gap:34px;margin-top:26px;align-items:start}
-  @media(max-width:840px){.stage{grid-template-columns:1fr;justify-items:center}}
 
-  /* phone */
+  /* phone (desktop: craft-demo frame) */
   .phone{width:300px;height:610px;background:#05070c;border-radius:40px;padding:12px;position:relative;
-         box-shadow:0 34px 80px rgba(0,0,0,.6),0 0 0 1px var(--line)}
+         box-shadow:0 34px 80px rgba(0,0,0,.6),0 0 0 1px var(--line);flex-shrink:0}
   .phone::before{content:"";position:absolute;top:21px;left:50%;transform:translateX(-50%);width:96px;height:6px;background:#1a2030;border-radius:6px;z-index:6}
   .screen{width:100%;height:100%;background:linear-gradient(180deg,#10141d,#0b0e15);border-radius:30px;overflow:hidden;position:relative;display:flex;flex-direction:column}
   .sbar{display:flex;justify-content:space-between;align-items:center;padding:15px 20px 8px;font-size:11px;color:var(--mut);font-weight:600}
@@ -40,6 +53,25 @@
   .body::-webkit-scrollbar{width:0}
   .foot{display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid var(--line);font-size:10px;color:var(--dim)}
   .foot b{color:var(--a2)}
+
+  /* ── Desktop: show sidebar ── */
+  @media(min-width:900px){
+    .sidebar{display:flex}
+    .mob-header{display:none}
+  }
+  /* ── Mobile: full-screen app mode ── */
+  @media(max-width:899px){
+    html,body{overflow:hidden}
+    .content-area{overflow:hidden}
+    .wrap{padding:0;max-width:none}
+    .back,.eyebrow,h1,p.lead{display:none}
+    .stage{margin:0;gap:0;display:flex;flex-direction:column;height:100vh}
+    .phone{width:100%;height:100%;border-radius:0;box-shadow:none;padding:0;flex:1;min-height:0}
+    .phone::before{display:none}
+    .screen{border-radius:0}
+    .sbar{padding:10px 18px 6px}
+    .hud{display:none}
+  }
 
   .h{font-size:13px;color:var(--mut);font-weight:600}
   .title{font-size:21px;font-weight:850;margin:2px 0 12px}
@@ -126,6 +158,19 @@
 </style>
 </head>
 <body>
+<aside class="sidebar">
+  <div class="sb-brand"><span class="sb-logo">Strong &amp; Lean</span></div>
+  <div class="sb-nav">
+    <a class="sb-item" href="frictionless_dashboard.html?view=today">☀️ Today</a>
+    <a class="sb-item" href="frictionless_dashboard.html?view=trends">📈 Trends</a>
+    <a class="sb-item" href="frictionless_dashboard.html?view=story">🏆 Progress</a>
+    <a class="sb-item" href="frictionless_dashboard.html?view=plans">📋 Plans</a>
+    <a class="sb-item" href="exercise_library.html">📚 Library</a>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-user">Ryan 💪</div>
+</aside>
+<div class="content-area">
 <div class="wrap">
   <div class="back"><a href="frictionless_dashboard.html">‹ back to Dashboard</a></div>
   <div class="eyebrow">Craft demo · the manifesto, made tangible</div>
@@ -173,6 +218,7 @@
     </div>
   </div>
 </div>
+</div><!-- /content-area -->
 
 <script>
 // ---------- Phase 0: localStorage persistence ----------
