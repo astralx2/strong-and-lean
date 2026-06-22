@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html><head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0;url=frictionless_dashboard.html">
 <link rel="manifest" href="manifest.json">
+<script>
+window.location.replace(
+  localStorage.getItem('sl_onboarded')
+    ? 'frictionless_dashboard.html'
+    : 'onboarding.html'
+);
+</script>
 </head>
 <body></body>
 </html>

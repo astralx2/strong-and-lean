@@ -208,7 +208,7 @@ body{
   <!-- CTA -->
   <div class="cta-wrap" id="ctaWrap">
     <button class="btn-primary" id="ctaBtn" onclick="advance()">Next →</button>
-    <a class="btn-ghost" id="skipBtn" href="frictionless_dashboard.html">Skip to dashboard</a>
+    <a class="btn-ghost" id="skipBtn" href="frictionless_dashboard.html" onclick="localStorage.setItem('sl_onboarded','1')">Skip to dashboard</a>
   </div>
 </div>
 
@@ -236,7 +236,7 @@ function goTo(i) {
   // CTA
   if (cur === TOTAL - 1) {
     ctaBtn.textContent = LAST_BTN;
-    ctaBtn.onclick = () => { window.location.href = LAST_HREF; };
+    ctaBtn.onclick = () => { localStorage.setItem('sl_onboarded','1'); window.location.href = LAST_HREF; };
     skipBtn.style.display = 'none';
   } else {
     ctaBtn.textContent = 'Next →';

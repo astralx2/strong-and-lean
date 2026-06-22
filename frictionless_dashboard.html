@@ -1206,6 +1206,7 @@ function renderWeekStrip(){
 })();
 
 // ══════════ BOOT ══════════
+if(!localStorage.getItem('sl_onboarded')){window.location.replace('onboarding.html');}
 initToday();
 // Handle ?view= param from sidebar links on other pages
 (function(){
