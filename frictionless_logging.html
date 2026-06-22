@@ -156,6 +156,7 @@
   .kbd{font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:5px;padding:1px 6px;background:var(--bg2)}
   .restartbtn{margin-top:14px;background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:10px;padding:9px 14px;font-size:12.5px;cursor:pointer}
 </style>
+<script src="js/sync.js"></script>
 </head>
 <body>
 <aside class="sidebar">
@@ -245,11 +246,19 @@ function completeSession(){
     if(!prs[k]||e.topWeight>(prs[k].w||0))prs[k]={w:e.topWeight,r:e.repsAtTop,at:Date.now()};
   });
   lsSet(LS_K.PRS,prs);
+  // Sync PRs to server
+  if(window.SL){S.exercises.forEach(e=>{
+    const k=e.name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+    if(e.topWeight>0)SL.savePR(k,e.topWeight,e.repsAtTop);
+  });}
   const h=lsGet(LS_K.HISTORY)||[];
-  h.unshift({name:S.name,at:Date.now(),sets:loggedCount(),prs:S.prs.length,
-    vol:S.exercises.reduce((a,e)=>a+e.logged.reduce((b,l)=>b+l.w*l.r,0),0)});
+  const sess={id:S._at+'',date:new Date().toISOString().slice(0,10),name:S.name,
+    exercises:S.exercises,sets:loggedCount(),prs:S.prs.length,
+    vol:S.exercises.reduce((a,e)=>a+e.logged.reduce((b,l)=>b+l.w*l.r,0),0)};
+  h.unshift(sess);
   if(h.length>100)h.pop();
   lsSet(LS_K.HISTORY,h);
+  if(window.SL)SL.addSession(sess);
   localStorage.removeItem(LS_K.SESSION);
 }
 

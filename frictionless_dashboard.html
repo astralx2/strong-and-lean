@@ -269,6 +269,7 @@ body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;heig
 .hi-meta{font-size:12px;color:var(--dim)}
 .hi-pr{font-size:10px;font-weight:700;color:var(--gold);background:rgba(255,209,102,.12);padding:2px 7px;border-radius:6px;display:inline-block;margin-top:5px}
 </style>
+<script src="js/sync.js"></script>
 </head>
 <body>
 
@@ -1048,6 +1049,7 @@ function logProt(){
   const cur=parseInt(localStorage.getItem('sl_prot_'+today)||'0');
   const val=cur+_protInput;
   localStorage.setItem('sl_prot_'+today,val);
+  if(window.SL)SL.saveProtein(today,val);
   DATA.protein.logged=val;
   closeProt();
   animMiniRing('prot-fill',Math.min(DATA.protein.logged/DATA.protein.target,1),131.9);
@@ -1104,6 +1106,7 @@ function adjWt(d){
 function logWt(){
   const today=new Date().toISOString().slice(0,10);
   localStorage.setItem('sl_wt_'+today,_wtInput);
+  if(window.SL)SL.saveWeight(today,_wtInput);
   DATA.weight=_wtInput;closeWt();
   document.getElementById('wt-val').textContent=_wtInput.toFixed(1);
   const t=document.getElementById('ql-toast');
@@ -1135,6 +1138,7 @@ function logCal(){
   const cur=parseInt(localStorage.getItem('sl_cal_'+today)||'0');
   const val=cur+_calInput;
   localStorage.setItem('sl_cal_'+today,val);
+  if(window.SL)SL.saveCalories(today,val);
   DATA.calories.logged=val;closeCal();
   animMiniRing('cal-fill',Math.min(DATA.calories.logged/DATA.calories.target,1),131.9);
   setTimeout(()=>{
@@ -1207,7 +1211,8 @@ function renderWeekStrip(){
 
 // ══════════ BOOT ══════════
 if(!localStorage.getItem('sl_onboarded')){window.location.replace('onboarding.html');}
-initToday();
+// Pull server state first (merges into localStorage), then init UI
+(window.SL ? SL.pull() : Promise.resolve()).then(initToday);
 // Handle ?view= param from sidebar links on other pages
 (function(){
   const v=new URLSearchParams(location.search).get('view');
