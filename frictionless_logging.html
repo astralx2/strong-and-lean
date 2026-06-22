@@ -247,6 +247,12 @@ function freshSession(){
   }
 
   applyPRs(exercises);
+  // Carry forward last best weights into sets
+  exercises.forEach(e => {
+    if (e.topWeight > 0) {
+      e.sets.forEach(s => { s.w = e.topWeight; s.r = e.repsAtTop; });
+    }
+  });
   return {
     name: sessionName,
     started:false,

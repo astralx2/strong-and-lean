@@ -87,6 +87,7 @@ body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;heig
   .story-card{margin:20px 24px 0}
   .prog-section{margin:18px 24px 0}
   .share-btn{margin:18px 24px 0}
+  .week-strip{margin:10px 24px 0}
 }
 
 /* ── SECTION HEADER ── */
@@ -238,6 +239,35 @@ body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;heig
 /* ── GOLD SHIMMER for near-PR headline btn ── */
 @keyframes shimmer{0%{background-position:-200px 0}100%{background-position:200px 0}}
 .shimmer-btn{background:linear-gradient(90deg,#ffd166,#ff9f0a,#ffd166);background-size:400px 100%;animation:shimmer 2s infinite linear;color:#1a1000}
+
+/* ── WEEK STRIP ── */
+.week-strip{margin:10px 16px 0;background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:12px 16px}
+.ws-inner{display:flex;align-items:center;gap:10px}
+.ws-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);min-width:48px;flex-shrink:0}
+.ws-dots{display:flex;gap:5px;flex:1}
+.ws-day{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.ws-dot{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.ws-dot.done{background:rgba(124,92,255,.25)}
+.ws-dot.rest{background:rgba(255,255,255,.04)}
+.ws-dot.today-done{background:var(--good)}
+.ws-dot.today-rest{background:rgba(255,255,255,.06);border:1px solid rgba(124,92,255,.4)}
+.ws-daylbl{font-size:9px;color:var(--dim);text-transform:uppercase;font-weight:700}
+.ws-streak{font-size:13px;font-weight:800;color:var(--warn);flex-shrink:0}
+/* ── HISTORY OVERLAY ── */
+.hist-overlay{display:none;position:fixed;inset:0;background:rgba(8,11,18,.97);z-index:50;flex-direction:column}
+.hist-hdr{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 12px;flex-shrink:0;border-bottom:1px solid var(--bdr)}
+.hist-title{font-size:20px;font-weight:900}
+.hist-close{font-size:22px;color:var(--dim);cursor:pointer;padding:4px 10px;border-radius:8px;transition:color .15s}
+.hist-close:hover{color:var(--txt)}
+.hist-list{flex:1;overflow-y:auto;padding:12px 20px 40px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.hist-list::-webkit-scrollbar{display:none}
+.hist-empty{text-align:center;color:var(--dim);padding:60px 0;font-size:14px}
+.hist-item{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.hi-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px}
+.hi-name{font-size:14px;font-weight:800;flex:1}
+.hi-date{font-size:11px;color:var(--dim);text-align:right;flex-shrink:0;margin-left:8px}
+.hi-meta{font-size:12px;color:var(--dim)}
+.hi-pr{font-size:10px;font-weight:700;color:var(--gold);background:rgba(255,209,102,.12);padding:2px 7px;border-radius:6px;display:inline-block;margin-top:5px}
 </style>
 </head>
 <body>
@@ -315,7 +345,7 @@ body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;heig
 
     <!-- Metrics row: protein + bodyweight -->
     <div class="metrics-row anim-up">
-      <div class="metric-card">
+      <div class="metric-card" onclick="openProt()" style="cursor:pointer">
         <div class="mc-lbl">Protein</div>
         <div class="mc-ring">
           <svg viewBox="0 0 52 52">
@@ -328,7 +358,7 @@ body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;heig
         <div class="mc-val" id="prot-val" style="color:var(--prot)">0g</div>
         <div class="mc-sub">of 180g</div>
       </div>
-      <div class="metric-card">
+      <div class="metric-card" onclick="openCal()" style="cursor:pointer">
         <div class="mc-lbl">Calories</div>
         <div class="mc-ring">
           <svg viewBox="0 0 52 52">
@@ -341,7 +371,7 @@ body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;heig
         <div class="mc-val" id="cal-val" style="color:var(--a1)">0</div>
         <div class="mc-sub">of 2,400 kcal</div>
       </div>
-      <div class="metric-card">
+      <div class="metric-card" onclick="openWt()" style="cursor:pointer">
         <div class="mc-lbl">Weight</div>
         <div style="height:52px;display:flex;align-items:center;justify-content:center">
           <div style="text-align:center">
@@ -355,7 +385,7 @@ body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;heig
     </div>
 
     <!-- Last session chip -->
-    <div class="session-chip anim-up" onclick="showPR()">
+    <div class="session-chip anim-up" onclick="openHist()">
       <div class="sc-icon">💪</div>
       <div class="sc-info">
         <div class="sc-main">Monday · Chest & Shoulders</div>
@@ -363,6 +393,14 @@ body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;heig
         <div class="sc-pr">🏅 Bench PR · +2.5kg</div>
       </div>
       <div class="sc-arrow">›</div>
+    </div>
+
+    <!-- Week Strip -->
+    <div class="week-strip anim-up" id="week-strip">
+      <div class="ws-inner">
+        <div class="ws-label">This week</div>
+        <div class="ws-dots" id="ws-dots"></div>
+      </div>
     </div>
 
     <!-- Quick Log -->
@@ -579,6 +617,51 @@ body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;heig
     <button onclick="closeProt()" style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:transparent;color:#6b768c;font-size:13px;font-weight:600;cursor:pointer">Cancel</button>
   </div>
 
+  <!-- ── WEIGHT INPUT OVERLAY ── -->
+  <div id="wt-overlay" style="display:none;position:fixed;inset:0;background:rgba(8,11,18,.96);z-index:50;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center">
+    <div style="font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#23d5ab;margin-bottom:16px">Log Weight</div>
+    <div id="wt-input-num" style="font-size:58px;font-weight:900;line-height:1;margin-bottom:6px;background:linear-gradient(135deg,#7c5cff,#23d5ab);-webkit-background-clip:text;-webkit-text-fill-color:transparent">83.4</div>
+    <div style="font-size:13px;color:#6b768c;margin-bottom:22px">kilograms</div>
+    <div style="display:flex;gap:8px;margin-bottom:22px">
+      <button onclick="adjWt(-1)" style="padding:11px 14px;border-radius:12px;background:#1a1f2a;border:1px solid rgba(255,255,255,.09);color:#e8ecf4;font-size:14px;font-weight:700;cursor:pointer">−1</button>
+      <button onclick="adjWt(-0.5)" style="padding:11px 14px;border-radius:12px;background:#1a1f2a;border:1px solid rgba(255,255,255,.09);color:#e8ecf4;font-size:14px;font-weight:700;cursor:pointer">−0.5</button>
+      <button onclick="adjWt(0.5)" style="padding:11px 14px;border-radius:12px;background:#1a1f2a;border:1px solid rgba(255,255,255,.09);color:#e8ecf4;font-size:14px;font-weight:700;cursor:pointer">+0.5</button>
+      <button onclick="adjWt(1)" style="padding:11px 14px;border-radius:12px;background:#1a1f2a;border:1px solid rgba(255,255,255,.09);color:#e8ecf4;font-size:14px;font-weight:700;cursor:pointer">+1</button>
+    </div>
+    <button id="wt-log-btn" onclick="logWt()" style="width:100%;padding:15px;border-radius:14px;border:none;background:linear-gradient(135deg,#7c5cff,#23d5ab);color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px">✓ Log 83.4 kg</button>
+    <button onclick="closeWt()" style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:transparent;color:#6b768c;font-size:13px;font-weight:600;cursor:pointer">Cancel</button>
+  </div>
+
+  <!-- ── CALORIES INPUT OVERLAY ── -->
+  <div id="cal-overlay" style="display:none;position:fixed;inset:0;background:rgba(8,11,18,.96);z-index:50;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center">
+    <div style="font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#7c5cff;margin-bottom:16px">Log Calories</div>
+    <div id="cal-input-num" style="font-size:58px;font-weight:900;line-height:1;margin-bottom:6px;background:linear-gradient(135deg,#7c5cff,#23d5ab);-webkit-background-clip:text;-webkit-text-fill-color:transparent">500</div>
+    <div style="font-size:13px;color:#6b768c;margin-bottom:22px">kcal</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button onclick="adjCal(-100)" style="padding:11px 14px;border-radius:12px;background:#1a1f2a;border:1px solid rgba(255,255,255,.09);color:#e8ecf4;font-size:14px;font-weight:700;cursor:pointer">−100</button>
+      <button onclick="adjCal(-50)" style="padding:11px 14px;border-radius:12px;background:#1a1f2a;border:1px solid rgba(255,255,255,.09);color:#e8ecf4;font-size:14px;font-weight:700;cursor:pointer">−50</button>
+      <button onclick="adjCal(50)" style="padding:11px 14px;border-radius:12px;background:#1a1f2a;border:1px solid rgba(255,255,255,.09);color:#e8ecf4;font-size:14px;font-weight:700;cursor:pointer">+50</button>
+      <button onclick="adjCal(100)" style="padding:11px 14px;border-radius:12px;background:#1a1f2a;border:1px solid rgba(255,255,255,.09);color:#e8ecf4;font-size:14px;font-weight:700;cursor:pointer">+100</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:22px">
+      <button onclick="setCalPreset(600)" style="padding:7px 12px;border-radius:20px;background:rgba(124,92,255,.12);border:1px solid rgba(124,92,255,.25);color:#b9a7ff;font-size:11px;font-weight:700;cursor:pointer">🍗 Chicken rice (600)</button>
+      <button onclick="setCalPreset(350)" style="padding:7px 12px;border-radius:20px;background:rgba(124,92,255,.12);border:1px solid rgba(124,92,255,.25);color:#b9a7ff;font-size:11px;font-weight:700;cursor:pointer">🥚 Eggs & toast (350)</button>
+      <button onclick="setCalPreset(450)" style="padding:7px 12px;border-radius:20px;background:rgba(124,92,255,.12);border:1px solid rgba(124,92,255,.25);color:#b9a7ff;font-size:11px;font-weight:700;cursor:pointer">🥤 Protein shake (450)</button>
+      <button onclick="setCalPreset(800)" style="padding:7px 12px;border-radius:20px;background:rgba(124,92,255,.12);border:1px solid rgba(124,92,255,.25);color:#b9a7ff;font-size:11px;font-weight:700;cursor:pointer">🍝 Pasta meal (800)</button>
+    </div>
+    <button id="cal-log-btn" onclick="logCal()" style="width:100%;padding:15px;border-radius:14px;border:none;background:linear-gradient(135deg,#7c5cff,#23d5ab);color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px">✓ Add 500 kcal</button>
+    <button onclick="closeCal()" style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:transparent;color:#6b768c;font-size:13px;font-weight:600;cursor:pointer">Cancel</button>
+  </div>
+
+  <!-- ── SESSION HISTORY OVERLAY ── -->
+  <div id="hist-overlay" class="hist-overlay">
+    <div class="hist-hdr">
+      <div class="hist-title">Session History</div>
+      <div class="hist-close" onclick="closeHist()">✕</div>
+    </div>
+    <div class="hist-list" id="hist-items"></div>
+  </div>
+
   <!-- ── NAV ── -->
   <nav class="nav">
     <div class="nav-item active" id="nav-today" onclick="setView('today')">
@@ -665,6 +748,26 @@ function initToday() {
   const _dateEl = document.querySelector('#view-today .sec-sub');
   if(_dateEl) _dateEl.textContent = _now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   initLastSession();
+  // Load real weight + calories
+  const _wt=parseFloat(localStorage.getItem('sl_wt_'+_today)||'0');
+  if(_wt>0){DATA.weight=_wt;document.getElementById('wt-val').textContent=_wt.toFixed(1);}
+  const _cal=parseInt(localStorage.getItem('sl_cal_'+_today)||'0');
+  if(_cal>0)DATA.calories.logged=_cal;
+  // Done-today headline flip
+  try{
+    const _hist=JSON.parse(localStorage.getItem('sl_history')||'null');
+    if(_hist&&_hist.length){
+      const _last=_hist[0];
+      if(new Date(_last.at).toISOString().slice(0,10)===_today){
+        document.getElementById('hc-icon').textContent='✅';
+        document.getElementById('hc-main').textContent=(_last.name||'Workout')+' done!';
+        document.getElementById('hc-sub').textContent=_last.sets+' sets · '+Math.round(_last.vol||0).toLocaleString()+' kg vol'+(_last.prs>0?' · 🏅 '+_last.prs+' PR'+(_last.prs>1?'s':''):'');
+        const _btn=document.getElementById('hc-btn');
+        _btn.textContent='View history →';_btn.style.background='var(--good)';_btn.style.color='#062010';_btn.onclick=openHist;
+      }
+    }
+  }catch(_e){}
+  renderWeekStrip();
 
   // Readiness ring animation
   const circ = 2 * Math.PI * 66; // 414.69
@@ -726,17 +829,13 @@ function cycleHeadline() {
 }
 
 // ══════════ QUICK LOG ══════════
-const QL_MSGS = {
-  photo: '📸 Opening camera — snap your meal',
-  protein: '🥩 Added: Chicken breast 150g — +42g protein',
-  weight: '⚖️ Weight logged: 83.4 kg today'
-};
 function quickLog(type) {
-  const toast = document.getElementById('ql-toast');
-  toast.textContent = QL_MSGS[type];
-  toast.style.display = 'block';
-  setTimeout(() => { toast.style.display = 'none'; }, 2200);
-  if (type === 'protein') { openProt(); return; }
+  if(type==='protein'){openProt();return;}
+  if(type==='weight'){openWt();return;}
+  const toast=document.getElementById('ql-toast');
+  toast.textContent='📸 Photo meal — coming soon';
+  toast.style.display='block';
+  setTimeout(()=>{toast.style.display='none';},2200);
 }
 
 // ══════════ PR TOAST ══════════
@@ -985,6 +1084,126 @@ cycleHint.style.cssText = 'text-align:center;font-size:11px;color:var(--dim);mar
 cycleHint.textContent = '↻ Tap to see different headline states';
 cycleHint.onclick = cycleHeadline;
 document.getElementById('headline-card').insertAdjacentElement('afterend', cycleHint);
+
+// ══════════ WEIGHT MODAL ══════════
+let _wtInput=83.4;
+function openWt(){
+  const today=new Date().toISOString().slice(0,10);
+  const saved=parseFloat(localStorage.getItem('sl_wt_'+today)||'0');
+  _wtInput=saved>0?saved:DATA.weight;
+  document.getElementById('wt-input-num').textContent=_wtInput.toFixed(1);
+  document.getElementById('wt-log-btn').textContent='✓ Log '+_wtInput.toFixed(1)+' kg';
+  document.getElementById('wt-overlay').style.display='flex';
+}
+function closeWt(){document.getElementById('wt-overlay').style.display='none';}
+function adjWt(d){
+  _wtInput=Math.max(30,Math.round((_wtInput+d)*10)/10);
+  document.getElementById('wt-input-num').textContent=_wtInput.toFixed(1);
+  document.getElementById('wt-log-btn').textContent='✓ Log '+_wtInput.toFixed(1)+' kg';
+}
+function logWt(){
+  const today=new Date().toISOString().slice(0,10);
+  localStorage.setItem('sl_wt_'+today,_wtInput);
+  DATA.weight=_wtInput;closeWt();
+  document.getElementById('wt-val').textContent=_wtInput.toFixed(1);
+  const t=document.getElementById('ql-toast');
+  t.textContent='⚖️ '+_wtInput.toFixed(1)+' kg logged today';
+  t.style.display='block';setTimeout(()=>{t.style.display='none';},2400);
+}
+
+// ══════════ CALORIES MODAL ══════════
+let _calInput=500;
+function openCal(){
+  _calInput=500;
+  document.getElementById('cal-input-num').textContent=_calInput;
+  document.getElementById('cal-log-btn').textContent='✓ Add '+_calInput+' kcal';
+  document.getElementById('cal-overlay').style.display='flex';
+}
+function closeCal(){document.getElementById('cal-overlay').style.display='none';}
+function adjCal(d){
+  _calInput=Math.max(0,_calInput+d);
+  document.getElementById('cal-input-num').textContent=_calInput;
+  document.getElementById('cal-log-btn').textContent='✓ Add '+_calInput+' kcal';
+}
+function setCalPreset(v){
+  _calInput=v;
+  document.getElementById('cal-input-num').textContent=_calInput;
+  document.getElementById('cal-log-btn').textContent='✓ Add '+_calInput+' kcal';
+}
+function logCal(){
+  const today=new Date().toISOString().slice(0,10);
+  const cur=parseInt(localStorage.getItem('sl_cal_'+today)||'0');
+  const val=cur+_calInput;
+  localStorage.setItem('sl_cal_'+today,val);
+  DATA.calories.logged=val;closeCal();
+  animMiniRing('cal-fill',Math.min(DATA.calories.logged/DATA.calories.target,1),131.9);
+  setTimeout(()=>{
+    document.getElementById('cal-val').textContent=DATA.calories.logged.toLocaleString();
+    document.getElementById('cal-pct').textContent=Math.round(DATA.calories.logged/DATA.calories.target*100)+'%';
+  },600);
+  const t=document.getElementById('ql-toast');
+  t.textContent='🍽 +'+_calInput+' kcal · '+DATA.calories.logged.toLocaleString()+' / '+DATA.calories.target.toLocaleString()+' kcal';
+  t.style.display='block';setTimeout(()=>{t.style.display='none';},2400);
+}
+
+// ══════════ HISTORY OVERLAY ══════════
+function openHist(){
+  try{
+    const h=JSON.parse(localStorage.getItem('sl_history')||'null');
+    const list=document.getElementById('hist-items');
+    if(!h||!h.length){
+      list.innerHTML='<div class="hist-empty">No sessions yet — log your first workout!</div>';
+    }else{
+      list.innerHTML=h.slice(0,30).map(s=>{
+        const d=new Date(s.at);
+        const dateStr=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+        const timeStr=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+        return '<div class="hist-item"><div class="hi-row"><div class="hi-name">'+(s.name||'Workout')+'</div><div class="hi-date">'+dateStr+' · '+timeStr+'</div></div><div class="hi-meta">'+s.sets+' sets · '+Math.round(s.vol||0).toLocaleString()+' kg vol</div>'+(s.prs>0?'<div class="hi-pr">🏅 '+s.prs+' PR'+(s.prs>1?'s':'')+'</div>':'')+'</div>';
+      }).join('');
+    }
+    document.getElementById('hist-overlay').style.display='flex';
+  }catch(_e){}
+}
+function closeHist(){document.getElementById('hist-overlay').style.display='none';}
+
+// ══════════ WEEK STRIP ══════════
+function renderWeekStrip(){
+  try{
+    const h=JSON.parse(localStorage.getItem('sl_history')||'[]');
+    const today=new Date();
+    const days=[];
+    for(let i=6;i>=0;i--){
+      const d=new Date(today);d.setDate(today.getDate()-i);
+      const key=d.toISOString().slice(0,10);
+      const done=h.some(s=>new Date(s.at).toISOString().slice(0,10)===key);
+      days.push({label:['S','M','T','W','T','F','S'][d.getDay()],done,isToday:i===0});
+    }
+    let streak=0;
+    for(let i=days.length-1;i>=0;i--){if(days[i].done)streak++;else break;}
+    const dots=document.getElementById('ws-dots');if(!dots)return;
+    dots.innerHTML=days.map(d=>{
+      const cls=d.isToday?(d.done?'today-done':'today-rest'):(d.done?'done':'rest');
+      return '<div class="ws-day"><div class="ws-dot '+cls+'">'+(d.done?'💪':'')+'</div><div class="ws-daylbl">'+d.label+'</div></div>';
+    }).join('');
+    if(streak>1){const s=document.createElement('div');s.className='ws-streak';s.textContent='🔥'+streak;document.getElementById('week-strip').querySelector('.ws-inner').appendChild(s);}
+  }catch(_e){}
+}
+
+// ══════════ SWIPE NAVIGATION ══════════
+(function(){
+  let _sx=0,_sy=0;
+  const _views=['today','trends','story','plans'];
+  const _ms=document.getElementById('main-scroll');
+  if(!_ms)return;
+  _ms.addEventListener('touchstart',e=>{_sx=e.touches[0].clientX;_sy=e.touches[0].clientY;},{passive:true});
+  _ms.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-_sx,dy=e.changedTouches[0].clientY-_sy;
+    if(Math.abs(dx)<50||Math.abs(dx)<Math.abs(dy)*1.5)return;
+    const cur=_views.findIndex(v=>document.getElementById('view-'+v).classList.contains('active'));
+    const next=dx<0?Math.min(cur+1,_views.length-1):Math.max(cur-1,0);
+    if(next!==cur){setView(_views[next]);_ms.scrollTop=0;}
+  },{passive:true});
+})();
 
 // ══════════ BOOT ══════════
 initToday();
