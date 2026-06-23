@@ -530,7 +530,14 @@ body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;heig
       </div>
     </div>
 
-    <div class="share-btn" onclick="shareStory()">Share Your Week →</div>
+    <div style="display:flex;gap:8px;margin:18px 16px 0;flex-wrap:wrap">
+      <button id="share-week-copy" onclick="shareStory('copy')"
+        style="flex:1;min-width:80px;padding:11px 8px;border-radius:12px;font-size:13px;font-weight:700;border:1px solid var(--bdr);background:var(--card);color:var(--txt);cursor:pointer">📋 Copy</button>
+      <button onclick="shareStory('whatsapp')"
+        style="flex:1;min-width:80px;padding:11px 8px;border-radius:12px;font-size:13px;font-weight:700;border:1px solid var(--bdr);background:var(--card);color:var(--txt);cursor:pointer">WhatsApp</button>
+      <button onclick="shareStory('telegram')"
+        style="flex:1;min-width:80px;padding:11px 8px;border-radius:12px;font-size:13px;font-weight:700;border:1px solid var(--bdr);background:var(--card);color:var(--txt);cursor:pointer">Telegram</button>
+    </div>
   </div>
 
   <!-- ══════════ PLANS VIEW ══════════ -->
@@ -1130,12 +1137,84 @@ function browseProgramsToast() {
   setTimeout(() => { toast.style.display = 'none'; }, 2000);
 }
 
-function shareStory() {
-  fireConfetti();
-  const toast = document.getElementById('ql-toast');
-  toast.textContent = '📤 Progress card copied — ready to share!';
-  toast.style.display = 'block';
-  setTimeout(() => { toast.style.display = 'none'; }, 2000);
+function buildWeekSummaryText() {
+  const history = JSON.parse(localStorage.getItem('sl_history') || '[]');
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)); // Mon
+  weekStart.setHours(0,0,0,0);
+
+  const thisWeek = history.filter(s => {
+    const d = new Date((s.date || new Date(s.at).toISOString().slice(0,10)) + 'T12:00:00');
+    return d >= weekStart && d <= now;
+  });
+
+  const weekLabel = weekStart.toLocaleDateString('en-US', {month:'short', day:'numeric'}) +
+    ' – ' + now.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+
+  if (!thisWeek.length) {
+    return '💪 Strong & Lean — Week of ' + weekLabel + '\n\nNo sessions logged yet this week. Time to get after it!';
+  }
+
+  const totalVol  = thisWeek.reduce((a,s) => a + (s.vol||0), 0);
+  const totalSets = thisWeek.reduce((a,s) => a + (s.sets||0), 0);
+  const totalPRs  = thisWeek.reduce((a,s) => a + (s.prs||0), 0);
+
+  // Build PR list
+  const allPRs = [];
+  thisWeek.forEach(s => {
+    if (s.exercises) s.exercises.forEach(e => {
+      if (e.topWeight > 0) allPRs.push(e.name + ': ' + e.topWeight + 'kg');
+    });
+  });
+
+  // Protein this week
+  const protLines = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart); d.setDate(d.getDate() + i);
+    const ds = d.toISOString().slice(0,10);
+    const p = localStorage.getItem('sl_prot_' + ds);
+    if (p) protLines.push(parseInt(p));
+  }
+  const avgProt = protLines.length ? Math.round(protLines.reduce((a,b)=>a+b,0)/protLines.length) : null;
+
+  let lines = [
+    '💪 Strong & Lean — Week of ' + weekLabel,
+    '',
+    '🏋️ Sessions: ' + thisWeek.length,
+    '📦 Volume: ' + totalVol.toLocaleString() + ' kg',
+    '✅ Sets: ' + totalSets,
+  ];
+  if (totalPRs > 0) lines.push('🏆 PRs: ' + totalPRs);
+  if (avgProt) lines.push('🥩 Avg protein: ' + avgProt + 'g/day');
+
+  lines.push('');
+  thisWeek.forEach(s => {
+    lines.push('▸ ' + (s.name || 'Session') + ' · ' + (s.sets||0) + ' sets · ' + (s.vol||0).toLocaleString() + ' kg');
+  });
+
+  lines.push('', 'Tracked with Strong & Lean');
+  return lines.join('\n');
+}
+
+function shareStory(via) {
+  const text = buildWeekSummaryText();
+  if (!via || via === 'copy') {
+    navigator.clipboard.writeText(text).then(() => {
+      fireConfetti();
+      const btn = document.getElementById('share-week-copy');
+      if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000); }
+    }).catch(() => {
+      const toast = document.getElementById('ql-toast');
+      toast.textContent = '⚠️ Copy failed — try a different browser';
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2500);
+    });
+  } else if (via === 'whatsapp') {
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  } else if (via === 'telegram') {
+    window.open('https://t.me/share/url?url=&text=' + encodeURIComponent(text), '_blank');
+  }
 }
 
 // ══════════ PROTEIN MODAL ══════════
