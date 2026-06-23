@@ -652,18 +652,19 @@ function render(rpeMsg){
 function reset(){ clearInterval(restTimer); closeCelebrate(); _done=false; localStorage.removeItem(LS_K.SESSION); S=freshSession(); render(); }
 
 function formatShareText(){
-  const date=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const date=new Date().toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
   const vol=S.exercises.reduce((a,e)=>a+e.logged.reduce((b,l)=>b+l.w*l.r,0),0);
-  let lines=['💪 '+S.name+' · Strong & Lean','📅 '+date,''];
+  const lines=[S.name+' — '+date,''];
   S.exercises.forEach(e=>{
     if(!e.logged.length)return;
-    const sets=e.logged.map(l=>l.w+'kg×'+l.r).join(', ');
-    const hasPR=S.prs.some(p=>p.txt.includes(e.name));
-    lines.push(e.name+': '+sets+(hasPR?' 🏆':''));
+    lines.push(e.name+':');
+    e.logged.forEach((l,i)=>{
+      const isPR=S.prs.some(p=>p.txt.includes(e.name)&&(p.txt.includes(l.w+'')|| i===e.logged.length-1));
+      lines.push('  Set '+(i+1)+': '+l.w+'kg × '+l.r+' reps'+(isPR?' ← PR 🏆':''));
+    });
+    lines.push('');
   });
-  lines.push('');
-  lines.push('Volume: '+vol.toLocaleString()+' kg · Sets: '+loggedCount());
-  if(S.prs.length)lines.push('PRs: '+S.prs.length+' 🏆');
+  lines.push('Total: '+loggedCount()+' sets · '+vol.toLocaleString()+' kg');
   return lines.join('\n');
 }
 

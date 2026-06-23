@@ -532,7 +532,7 @@ body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;heig
 
     <div style="display:flex;gap:8px;margin:18px 16px 0;flex-wrap:wrap">
       <button id="share-week-copy" onclick="shareStory('copy')"
-        style="flex:1;min-width:80px;padding:11px 8px;border-radius:12px;font-size:13px;font-weight:700;border:1px solid var(--bdr);background:var(--card);color:var(--txt);cursor:pointer">📋 Copy</button>
+        style="flex:1;min-width:80px;padding:11px 8px;border-radius:12px;font-size:13px;font-weight:700;border:1px solid var(--bdr);background:var(--card);color:var(--txt);cursor:pointer">📋 Copy log</button>
       <button onclick="shareStory('whatsapp')"
         style="flex:1;min-width:80px;padding:11px 8px;border-radius:12px;font-size:13px;font-weight:700;border:1px solid var(--bdr);background:var(--card);color:var(--txt);cursor:pointer">WhatsApp</button>
       <button onclick="shareStory('telegram')"
@@ -1043,6 +1043,7 @@ function renderCalendar() {
 
 function selectDay(dateStr, sessEncoded) {
   const sess = JSON.parse(decodeURIComponent(sessEncoded));
+  _selectedSession = sess;
   // Deselect all, select clicked
   document.querySelectorAll('.cal-cell.selected').forEach(el => el.classList.remove('selected'));
   const cell = document.getElementById('cal-'+dateStr);
@@ -1137,68 +1138,48 @@ function browseProgramsToast() {
   setTimeout(() => { toast.style.display = 'none'; }, 2000);
 }
 
-function buildWeekSummaryText() {
-  const history = JSON.parse(localStorage.getItem('sl_history') || '[]');
-  const now = new Date();
-  const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)); // Mon
-  weekStart.setHours(0,0,0,0);
-
-  const thisWeek = history.filter(s => {
-    const d = new Date((s.date || new Date(s.at).toISOString().slice(0,10)) + 'T12:00:00');
-    return d >= weekStart && d <= now;
-  });
-
-  const weekLabel = weekStart.toLocaleDateString('en-US', {month:'short', day:'numeric'}) +
-    ' – ' + now.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-
-  if (!thisWeek.length) {
-    return '💪 Strong & Lean — Week of ' + weekLabel + '\n\nNo sessions logged yet this week. Time to get after it!';
+function buildSessionLogText(sess) {
+  if (!sess) {
+    const history = JSON.parse(localStorage.getItem('sl_history') || '[]');
+    sess = history[0];
   }
+  if (!sess) return 'No sessions logged yet.';
 
-  const totalVol  = thisWeek.reduce((a,s) => a + (s.vol||0), 0);
-  const totalSets = thisWeek.reduce((a,s) => a + (s.sets||0), 0);
-  const totalPRs  = thisWeek.reduce((a,s) => a + (s.prs||0), 0);
+  const dateStr = sess.date || new Date(sess.at).toISOString().slice(0,10);
+  const date = new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US',
+    {weekday:'short', day:'numeric', month:'short', year:'numeric'});
 
-  // Build PR list
-  const allPRs = [];
-  thisWeek.forEach(s => {
-    if (s.exercises) s.exercises.forEach(e => {
-      if (e.topWeight > 0) allPRs.push(e.name + ': ' + e.topWeight + 'kg');
+  const lines = [(sess.name || 'Session') + ' — ' + date, ''];
+
+  if (sess.exercises && sess.exercises.length) {
+    sess.exercises.forEach(e => {
+      if (!e.logged || !e.logged.length) return;
+      lines.push(e.name + ':');
+      e.logged.forEach((l, i) => {
+        // Mark top-weight set as PR if it matches topWeight
+        const isPR = e.topWeight && l.w >= e.topWeight && i === e.logged.length - 1;
+        lines.push('  Set ' + (i+1) + ': ' + l.w + 'kg × ' + l.r + ' reps' + (isPR ? ' ← PR 🏆' : ''));
+      });
+      lines.push('');
     });
-  });
-
-  // Protein this week
-  const protLines = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(weekStart); d.setDate(d.getDate() + i);
-    const ds = d.toISOString().slice(0,10);
-    const p = localStorage.getItem('sl_prot_' + ds);
-    if (p) protLines.push(parseInt(p));
+  } else {
+    lines.push('(No per-set detail — logged before detail tracking was added)');
+    lines.push('');
   }
-  const avgProt = protLines.length ? Math.round(protLines.reduce((a,b)=>a+b,0)/protLines.length) : null;
 
-  let lines = [
-    '💪 Strong & Lean — Week of ' + weekLabel,
-    '',
-    '🏋️ Sessions: ' + thisWeek.length,
-    '📦 Volume: ' + totalVol.toLocaleString() + ' kg',
-    '✅ Sets: ' + totalSets,
-  ];
-  if (totalPRs > 0) lines.push('🏆 PRs: ' + totalPRs);
-  if (avgProt) lines.push('🥩 Avg protein: ' + avgProt + 'g/day');
+  const vol = sess.vol || 0;
+  const sets = sess.sets || 0;
+  lines.push('Total: ' + sets + ' sets · ' + vol.toLocaleString() + ' kg');
+  if (sess.prs > 0) lines.push('PRs this session: ' + sess.prs + ' 🏆');
 
-  lines.push('');
-  thisWeek.forEach(s => {
-    lines.push('▸ ' + (s.name || 'Session') + ' · ' + (s.sets||0) + ' sets · ' + (s.vol||0).toLocaleString() + ' kg');
-  });
-
-  lines.push('', 'Tracked with Strong & Lean');
   return lines.join('\n');
 }
 
+// Track which session is selected in the calendar
+let _selectedSession = null;
+
 function shareStory(via) {
-  const text = buildWeekSummaryText();
+  const text = buildSessionLogText(_selectedSession);
   if (!via || via === 'copy') {
     navigator.clipboard.writeText(text).then(() => {
       fireConfetti();
