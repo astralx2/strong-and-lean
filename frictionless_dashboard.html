@@ -223,6 +223,39 @@ body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;heig
 /* Share button */
 .share-btn{margin:16px 16px 0;padding:14px;background:var(--grad);border-radius:14px;text-align:center;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:.02em}
 
+/* ── Calendar ── */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 4px 10px}
+.cal-nav span{font-size:15px;font-weight:800;color:var(--txt)}
+.cal-nav button{background:var(--card);border:1px solid var(--bdr);color:var(--txt);border-radius:9px;padding:5px 12px;font-size:14px;font-weight:700;cursor:pointer}
+.cal-nav button:hover{border-color:var(--a1);color:var(--a1)}
+.cal-stats{display:flex;gap:10px;margin-bottom:12px}
+.cs-item{flex:1;background:var(--card);border:1px solid var(--bdr);border-radius:13px;padding:10px 8px;text-align:center}
+.cs-val{font-size:22px;font-weight:850;color:var(--txt)}
+.cs-lbl{font-size:10px;color:var(--dim);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px}
+.cal-hdr{text-align:center;font-size:10px;font-weight:700;color:var(--dim);padding:4px 0;text-transform:uppercase}
+.cal-cell{min-height:42px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:default;transition:background .12s;position:relative}
+.cal-cell.has-session{cursor:pointer;background:rgba(124,92,255,.08);border:1px solid rgba(124,92,255,.2)}
+.cal-cell.has-session:hover{background:rgba(124,92,255,.18);border-color:var(--a1)}
+.cal-cell.is-today .cal-num{background:var(--a1);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
+.cal-cell.selected{background:rgba(124,92,255,.22);border:1px solid var(--a1)}
+.cal-cell.empty{cursor:default}
+.cal-num{font-size:13px;font-weight:700;color:var(--txt);line-height:1}
+.cal-cell.empty .cal-num,.cal-cell:not(.has-session):not(.is-today) .cal-num{color:var(--dim);font-weight:400}
+.cal-dot{width:5px;height:5px;border-radius:50%;background:var(--a2)}
+/* Session detail card */
+.cal-detail{background:var(--card);border:1px solid var(--a1);border-radius:16px;padding:14px 16px;margin-bottom:12px;animation:anim-up .2s both}
+.cd-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.cd-date{font-size:11px;font-weight:700;color:var(--a2);text-transform:uppercase;letter-spacing:.5px}
+.cd-name{font-size:16px;font-weight:850;color:var(--txt)}
+.cd-stats{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.cd-stats span{font-size:12px;font-weight:700;color:var(--mut);background:var(--panel);padding:3px 10px;border-radius:20px}
+.cd-ex{margin-bottom:8px}
+.cd-exname{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:3px}
+.cd-sets{display:flex;flex-wrap:wrap;gap:5px}
+.cd-set{font-size:11px;color:var(--mut);background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:2px 8px}
+.cd-empty{font-size:13px;color:var(--dim);font-style:italic}
+
 /* ── ANIMATIONS ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes ringIn{from{stroke-dashoffset:502}to{stroke-dashoffset:var(--target-offset)}}
@@ -458,43 +491,7 @@ body{display:flex;flex-direction:row;align-items:stretch;margin:0;padding:0;heig
 
   <!-- ══════════ PROGRESS STORY VIEW ══════════ -->
   <div class="view" id="view-story">
-    <div class="story-header">
-      <div class="story-week">Week of June 9–15</div>
-      <div class="story-headline" id="story-headline">Your best week yet.</div>
-      <div class="story-sub">Here's what you built.</div>
-    </div>
-
-    <div class="story-card anim-up">
-      <div class="story-win">
-        <div class="sw-icon">🏅</div>
-        <div class="sw-text">
-          <div class="sw-title">New PR — Bench Press</div>
-          <div class="sw-detail">87.5 kg × 5 reps — your heaviest ever. Up from 85 kg last month.</div>
-          <div class="sw-badge">Personal Record</div>
-        </div>
-      </div>
-      <div class="story-win">
-        <div class="sw-icon">💪</div>
-        <div class="sw-text">
-          <div class="sw-title">5 sessions · 0 missed</div>
-          <div class="sw-detail">Full week, every session logged. Monday through Friday.</div>
-        </div>
-      </div>
-      <div class="story-win">
-        <div class="sw-icon">🥩</div>
-        <div class="sw-text">
-          <div class="sw-title">Protein: 6 / 7 days</div>
-          <div class="sw-detail">Average 164g — 16g short of your 180g target but trending up.</div>
-        </div>
-      </div>
-      <div class="story-win">
-        <div class="sw-icon">📉</div>
-        <div class="sw-text">
-          <div class="sw-title">Weight: −0.4 kg</div>
-          <div class="sw-detail">84.0 → 83.6 kg over 7 days. Recomp pace — losing fat, keeping muscle.</div>
-        </div>
-      </div>
-    </div>
+    <div id="story-cal" style="padding:0 16px 8px"></div>
 
     <div class="prog-section">
       <div class="prog-title">Strength Progress — Last 4 Weeks</div>
@@ -953,15 +950,131 @@ function initTrends() {
 
 // ══════════ STORY INIT ══════════
 function initStory() {
+  renderCalendar();
   // Animate progress bars
   setTimeout(() => {
-    document.getElementById('bench-then').style.width = '82.5%';
-    document.getElementById('bench-now').style.width = '87.5%';
-    document.getElementById('squat-then').style.width = '80.4%';
-    document.getElementById('squat-now').style.width = '85.7%';
-    document.getElementById('ohp-then').style.width = '76.7%';
-    document.getElementById('ohp-now').style.width = '80%';
+    const b=(id,v)=>{const el=document.getElementById(id);if(el)el.style.width=v;};
+    b('bench-then','82.5%');b('bench-now','87.5%');
+    b('squat-then','80.4%');b('squat-now','85.7%');
+    b('ohp-then','76.7%');b('ohp-now','80%');
   }, 200);
+}
+
+let _calMonth = new Date();
+_calMonth.setDate(1);
+
+function renderCalendar() {
+  const container = document.getElementById('story-cal');
+  if (!container) return;
+
+  const history = JSON.parse(localStorage.getItem('sl_history') || '[]');
+
+  // Build date → session map
+  const sessMap = {};
+  history.forEach(s => {
+    const d = s.date || (s.at ? new Date(s.at).toISOString().slice(0,10) : null);
+    if (d) sessMap[d] = s;
+  });
+
+  const year  = _calMonth.getFullYear();
+  const month = _calMonth.getMonth();
+  const monthLabel = _calMonth.toLocaleString('default', {month:'long', year:'numeric'});
+  const today = new Date().toISOString().slice(0,10);
+  const firstDay = new Date(year, month, 1);
+  const lastDate  = new Date(year, month+1, 0).getDate();
+  const pad = s => String(s).padStart(2,'0');
+
+  // Stats for current month
+  const mPrefix = year+'-'+pad(month+1);
+  const mSessions = Object.keys(sessMap).filter(d => d.startsWith(mPrefix));
+  const mVol = mSessions.reduce((a,d) => a+(sessMap[d].vol||0), 0);
+
+  // Current streak (consecutive days ending today or yesterday)
+  let streak = 0;
+  const sortedDates = Object.keys(sessMap).sort().reverse();
+  let check = new Date(today);
+  for (let i = 0; i < 365; i++) {
+    const ds = check.toISOString().slice(0,10);
+    if (sessMap[ds]) { streak++; check.setDate(check.getDate()-1); }
+    else if (i === 0) { check.setDate(check.getDate()-1); } // allow today to be a rest day
+    else break;
+  }
+
+  // Build grid cells
+  let startPad = (firstDay.getDay() + 6) % 7; // Mon=0 start
+  let cells = ['M','T','W','T','F','S','S'].map(d=>`<div class="cal-hdr">${d}</div>`).join('');
+  for (let i = 0; i < startPad; i++) cells += `<div class="cal-cell empty"><span class="cal-num"></span></div>`;
+  for (let d = 1; d <= lastDate; d++) {
+    const ds = year+'-'+pad(month+1)+'-'+pad(d);
+    const hasSess = !!sessMap[ds];
+    const isToday = ds === today;
+    const sessJson = hasSess ? encodeURIComponent(JSON.stringify(sessMap[ds])) : '';
+    cells += `<div class="cal-cell${hasSess?' has-session':''}${isToday?' is-today':''}" id="cal-${ds}"
+      ${hasSess ? `onclick="selectDay('${ds}','${sessJson}')"` : ''}>
+      <span class="cal-num">${d}</span>
+      ${hasSess ? '<div class="cal-dot"></div>' : ''}
+    </div>`;
+  }
+
+  const volLabel = mVol >= 1000 ? (mVol/1000).toFixed(1)+'k' : mVol||'—';
+
+  container.innerHTML = `
+    <div class="cal-nav">
+      <button onclick="_calMonth.setMonth(_calMonth.getMonth()-1);renderCalendar()">←</button>
+      <span>${monthLabel}</span>
+      <button onclick="_calMonth.setMonth(_calMonth.getMonth()+1);renderCalendar()">→</button>
+    </div>
+    <div class="cal-stats">
+      <div class="cs-item"><div class="cs-val">${mSessions.length}</div><div class="cs-lbl">sessions</div></div>
+      <div class="cs-item"><div class="cs-val">${volLabel}</div><div class="cs-lbl">kg moved</div></div>
+      <div class="cs-item"><div class="cs-val">${streak}</div><div class="cs-lbl">streak</div></div>
+    </div>
+    <div class="cal-grid">${cells}</div>
+    <div class="cal-detail" id="cal-detail" style="display:none"></div>
+  `;
+}
+
+function selectDay(dateStr, sessEncoded) {
+  const sess = JSON.parse(decodeURIComponent(sessEncoded));
+  // Deselect all, select clicked
+  document.querySelectorAll('.cal-cell.selected').forEach(el => el.classList.remove('selected'));
+  const cell = document.getElementById('cal-'+dateStr);
+  if (cell) cell.classList.add('selected');
+
+  const detail = document.getElementById('cal-detail');
+  if (!detail) return;
+
+  const dateLabel = new Date(dateStr+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+
+  let exHtml = '';
+  if (sess.exercises && sess.exercises.length) {
+    sess.exercises.forEach(e => {
+      if (!e.logged || !e.logged.length) return;
+      exHtml += `<div class="cd-ex">
+        <div class="cd-exname">${e.name}</div>
+        <div class="cd-sets">${e.logged.map((l,i)=>`<span class="cd-set">S${i+1} · ${l.w}kg×${l.r}</span>`).join('')}</div>
+      </div>`;
+    });
+  } else {
+    exHtml = '<div class="cd-empty">No exercise detail — logged before detail tracking was added.</div>';
+  }
+
+  detail.style.display = 'block';
+  detail.innerHTML = `
+    <div class="cd-header">
+      <div>
+        <div class="cd-date">${dateLabel}</div>
+        <div class="cd-name">${sess.name || 'Session'}</div>
+      </div>
+    </div>
+    <div class="cd-stats">
+      <span>💪 ${sess.sets||0} sets</span>
+      <span>⚖️ ${(sess.vol||0).toLocaleString()} kg</span>
+      ${sess.prs ? `<span>🏆 ${sess.prs} PR${sess.prs>1?'s':''}</span>` : ''}
+    </div>
+    ${exHtml}
+  `;
+  detail.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 // ══════════ PLANS INIT ══════════
