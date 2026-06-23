@@ -43,16 +43,22 @@
 
   .stage{display:grid;grid-template-columns:300px 1fr;gap:34px;margin-top:26px;align-items:start}
 
-  /* phone (desktop: craft-demo frame) */
-  .phone{width:300px;height:610px;background:#05070c;border-radius:40px;padding:12px;position:relative;
-         box-shadow:0 34px 80px rgba(0,0,0,.6),0 0 0 1px var(--line);flex-shrink:0}
-  .phone::before{content:"";position:absolute;top:21px;left:50%;transform:translateX(-50%);width:96px;height:6px;background:#1a2030;border-radius:6px;z-index:6}
-  .screen{width:100%;height:100%;background:linear-gradient(180deg,#10141d,#0b0e15);border-radius:30px;overflow:hidden;position:relative;display:flex;flex-direction:column}
-  .sbar{display:flex;justify-content:space-between;align-items:center;padding:15px 20px 8px;font-size:11px;color:var(--mut);font-weight:600}
-  .body{flex:1;overflow-y:auto;padding:6px 18px 14px}
-  .body::-webkit-scrollbar{width:0}
-  .foot{display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid var(--line);font-size:10px;color:var(--dim)}
-  .foot b{color:var(--a2)}
+  .session-panel{flex:1;min-width:300px;max-width:440px;display:flex;flex-direction:column;gap:0}
+  .session-body{flex:1;overflow-y:auto;padding:6px 18px 20px;scrollbar-width:none}
+  .session-body::-webkit-scrollbar{display:none}
+  .ex-strip{display:flex;gap:6px;padding:10px 18px 0;flex-wrap:wrap;flex-shrink:0}
+  .ex-chip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;
+    border:1px solid var(--line);background:var(--bg2);color:var(--mut);cursor:pointer;transition:all .15s;white-space:nowrap}
+  .ex-chip:hover{border-color:var(--a2);color:var(--txt)}
+  .ex-chip.done{background:rgba(35,213,171,.1);border-color:var(--a2);color:var(--a2)}
+  .ex-chip.current{background:rgba(124,92,255,.18);border-color:var(--a1);color:#b9a7ff}
+  .ex-chip.future{opacity:.45;cursor:default}
+  /* Share buttons */
+  .share-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .share-btn{flex:1;min-width:80px;padding:10px 8px;border-radius:12px;font-size:13px;font-weight:700;
+    border:1px solid var(--line);background:var(--panel);color:var(--txt);cursor:pointer;text-align:center;transition:all .15s}
+  .share-btn:hover{border-color:var(--a2);color:var(--a2)}
+  .share-btn.copied{border-color:var(--good);color:var(--good)}
 
   /* ── Desktop: show sidebar ── */
   @media(min-width:900px){
@@ -66,10 +72,7 @@
     .wrap{padding:0;max-width:none}
     .back,.eyebrow,h1,p.lead{display:none}
     .stage{margin:0;gap:0;display:flex;flex-direction:column;height:100vh}
-    .phone{width:100%;height:100%;border-radius:0;box-shadow:none;padding:0;flex:1;min-height:0}
-    .phone::before{display:none}
-    .screen{border-radius:0}
-    .sbar{padding:10px 18px 6px}
+    .session-panel{max-width:none;flex:1}
     .hud{display:none}
   }
 
@@ -179,17 +182,16 @@
   <p class="lead">This is the north-star "log a set" interaction from <code>03_PRODUCT/06_deepdive_workout_logging.md</code>, playable. The session is <b>pre-predicted</b>; you just <b>confirm</b>. The app starts your rest timer, queues the next set, adjusts the weight to how you feel, and catches your PRs — so logging is <b>a joy and an afterthought</b>. The meter on the right counts your taps against a typical app's.</p>
 
   <div class="stage">
-    <div class="phone"><div class="screen">
-      <div class="sbar"><span id="clock">9:41</span><span id="ctx">Iron Works · arrived</span></div>
-      <div class="body" id="screen"><!-- rendered by JS --></div>
-      <div class="foot"><span id="f1"><b>Today</b></span><span id="f2">Log</span><span>Progress</span><span>You</span></div>
+    <div class="session-panel">
+      <div class="ex-strip" id="ex-strip"></div>
+      <div class="session-body" id="screen"><!-- rendered by JS --></div>
       <div class="celebrate" id="celebrate">
         <div class="trophy">🏆</div>
         <div class="pr" id="prText">New PR!</div>
         <div class="mini" id="prSub"></div>
         <button class="bigbtn" style="margin-top:18px;max-width:200px" onclick="closeCelebrate()">Let's go 🔥</button>
       </div>
-    </div></div>
+    </div>
 
     <div>
       <div class="hud">
@@ -490,12 +492,36 @@ function closeCelebrate(){
   c.querySelectorAll(".confetti").forEach(x=>x.remove());
 }
 
+// ---------- exercise strip ----------
+function renderExStrip(){
+  const strip=$('ex-strip');
+  if(!strip)return;
+  strip.innerHTML=S.exercises.map((e,i)=>{
+    const allDone=e.logged.length>=e.sets.length;
+    const isCur=i===S.ex&&S.screen!=='arrival'&&S.screen!=='summary';
+    const cls=allDone?'done':isCur?'current':'future';
+    const label=(allDone?'✓ ':isCur?'→ ':'')+e.name;
+    const clickable=allDone||isCur;
+    return `<div class="ex-chip ${cls}" ${clickable?`onclick="jumpTo(${i})"`:''}>${label}</div>`;
+  }).join('');
+}
+
+function jumpTo(i){
+  if(i===S.ex)return; // already here
+  const target=S.exercises[i];
+  if(target.logged.length>=target.sets.length)return; // all done, nowhere to jump
+  clearInterval(restTimer);
+  S.ex=i; S.set=target.logged.length; // start from first unlogged set
+  S.screen='logging';
+  render();
+}
+
 // ---------- render ----------
 function render(rpeMsg){
   updateHUD();
+  renderExStrip();
   const scr=$("screen");
   if(S.screen==="arrival"){
-    $("ctx").textContent="Iron Works · arrived";
     const firstEx = S.exercises[0].name;
     const isCustom = S.name !== "Push Day";
     scr.innerHTML=`
@@ -508,13 +534,11 @@ function render(rpeMsg){
       <button class="bigbtn" onclick="startSession()">Start ${firstEx} →</button>
       <div class="mini" style="text-align:center;margin-top:12px">↑ one tap. The app already knew what you'd do.</div>
     `;
-    $("f1").innerHTML="<b>Today</b>"; $("f2").innerHTML="Log";
     return;
   }
 
   if(S.screen==="logging"){
     const e=curEx(), s=curSet();
-    $("ctx").textContent=e.name+" · set "+(S.set+1)+"/"+e.sets.length;
     let setsHtml="";
     e.sets.forEach((st,i)=>{
       const done=i<e.logged.length;
@@ -544,7 +568,6 @@ function render(rpeMsg){
       <div class="mini" style="text-align:center;margin-top:10px">flick / scroll the wheels · hold to fine-tune · ~2s</div>
     `;
     initLoggingPickers(e,s);
-    $("f1").innerHTML="Today"; $("f2").innerHTML="<b>Log</b>";
     return;
   }
 
@@ -571,7 +594,6 @@ function render(rpeMsg){
       <button class="ghost" onclick="nextSet(true)">I'm ready → next set</button>
       <div class="mini" style="text-align:center;margin-top:9px">Timer runs itself. Walk away — it'll cue you.</div>
     `;
-    $("f1").innerHTML="Today"; $("f2").innerHTML="<b>Log</b>";
     return;
   }
 
@@ -599,14 +621,51 @@ function render(rpeMsg){
         <div class="flex between" style="margin-top:5px"><span class="mini">Weight decisions</span><b>${S.decisions}</b></div>
         <div class="mini" style="margin-top:9px;color:var(--good)">${pct}% less friction. Logging was an afterthought — exactly the point.</div>
       </div>
-      <button class="bigbtn" onclick="reset()">↻ Run it again</button>
+      <div class="share-row">
+        <button class="share-btn" id="share-copy" onclick="shareLog('copy')">📋 Copy</button>
+        <button class="share-btn" onclick="shareLog('whatsapp')">WhatsApp</button>
+        <button class="share-btn" onclick="shareLog('telegram')">Telegram</button>
+        <button class="share-btn" onclick="shareLog('messenger')">Messenger</button>
+      </div>
+      <button class="bigbtn" style="margin-top:10px" onclick="reset()">↻ Run it again</button>
     `;
-    $("f1").innerHTML="Today"; $("f2").innerHTML="Log";
     return;
   }
 }
 
 function reset(){ clearInterval(restTimer); closeCelebrate(); _done=false; localStorage.removeItem(LS_K.SESSION); S=freshSession(); render(); }
+
+function formatShareText(){
+  const date=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const vol=S.exercises.reduce((a,e)=>a+e.logged.reduce((b,l)=>b+l.w*l.r,0),0);
+  let lines=['💪 '+S.name+' · Strong & Lean','📅 '+date,''];
+  S.exercises.forEach(e=>{
+    if(!e.logged.length)return;
+    const sets=e.logged.map(l=>l.w+'kg×'+l.r).join(', ');
+    const hasPR=S.prs.some(p=>p.txt.includes(e.name));
+    lines.push(e.name+': '+sets+(hasPR?' 🏆':''));
+  });
+  lines.push('');
+  lines.push('Volume: '+vol.toLocaleString()+' kg · Sets: '+loggedCount());
+  if(S.prs.length)lines.push('PRs: '+S.prs.length+' 🏆');
+  return lines.join('\n');
+}
+
+function shareLog(via){
+  const text=formatShareText();
+  if(via==='copy'){
+    navigator.clipboard.writeText(text).then(()=>{
+      const btn=document.getElementById('share-copy');
+      if(btn){btn.textContent='✓ Copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='📋 Copy';btn.classList.remove('copied');},2000);}
+    });
+  } else if(via==='whatsapp'){
+    window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
+  } else if(via==='telegram'){
+    window.open('https://t.me/share/url?url=&text='+encodeURIComponent(text),'_blank');
+  } else if(via==='messenger'){
+    navigator.clipboard.writeText(text).then(()=>alert('Copied to clipboard — paste into Messenger'));
+  }
+}
 
 // keyboard
 document.addEventListener("keydown",e=>{
@@ -618,9 +677,6 @@ document.addEventListener("keydown",e=>{
   }
   if(e.key==="r"||e.key==="R") reset();
 });
-
-// live clock
-setInterval(()=>{const d=new Date();$("clock").textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});},1000);
 
 render();
 
